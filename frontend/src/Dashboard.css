@@ -1,0 +1,410 @@
+.dashboard {
+  min-height: 100vh;
+  background: #f4f7fb;
+  color: #172033;
+}
+
+.topbar {
+  height: 78px;
+  background: white;
+  border-bottom: 1px solid #e3e8ef;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 45px;
+}
+
+.dashboard-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #0b5ed7;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.dashboard-brand h2 {
+  font-size: 20px;
+}
+
+.dashboard-brand span {
+  font-size: 12px;
+  color: #748094;
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.user-section div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.user-section span {
+  font-size: 12px;
+  color: #0b5ed7;
+  margin-top: 3px;
+}
+
+.user-section button {
+  border: none;
+  background: #eef3f9;
+  color: #344054;
+  padding: 9px 16px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.dashboard-content {
+  padding: 40px 45px;
+  max-width: 1400px;
+  margin: auto;
+}
+
+.welcome {
+  margin-bottom: 30px;
+}
+
+.welcome h1 {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.welcome p {
+  color: #687386;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  border: 1px solid #e3e8ef;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
+}
+
+.card-title {
+  color: #687386;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.card-value {
+  font-size: 27px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.card-info {
+  font-size: 12px;
+  color: #8993a4;
+}
+
+.analysis-section,
+.decision-section {
+  background: white;
+  border: 1px solid #e3e8ef;
+  border-radius: 14px;
+  padding: 25px;
+  margin-bottom: 25px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h2,
+.decision-section h2 {
+  font-size: 20px;
+}
+
+.section-header span {
+  font-size: 13px;
+  color: #8993a4;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #edf0f4;
+}
+
+th {
+  font-size: 13px;
+  color: #687386;
+}
+
+td {
+  font-size: 14px;
+}
+
+.severity {
+  font-weight: bold;
+  color: #b42318;
+}
+
+.decision-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+}
+
+.decision-section p {
+  color: #687386;
+  line-height: 1.6;
+  margin-top: 10px;
+  max-width: 700px;
+}
+
+.ml-box {
+  min-width: 220px;
+  background: #eef5ff;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ml-box span {
+  font-size: 13px;
+  color: #687386;
+}
+
+.ml-box strong {
+  color: #0b5ed7;
+  font-size: 20px;
+}
+
+.ml-box small {
+  color: #687386;
+}
+
+@media (max-width: 900px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .topbar {
+    padding: 0 20px;
+  }
+
+  .dashboard-content {
+    padding: 30px 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .user-section div {
+    display: none;
+  }
+
+  .decision-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+/* ML Prediction Panel */
+
+.ml-box {
+  min-width: 360px;
+  background: #f8fbff;
+  border: 1px solid #dce8f7;
+  padding: 25px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ml-box h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.ml-box label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #475467;
+  margin-top: 5px;
+}
+
+.ml-box input,
+.ml-box select {
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #d0d7e2;
+  border-radius: 7px;
+  background: white;
+  font-size: 14px;
+  color: #172033;
+  outline: none;
+}
+
+.ml-box input:focus,
+.ml-box select:focus {
+  border-color: #0b5ed7;
+}
+
+.predict-button {
+  margin-top: 12px;
+  height: 44px;
+  border: none;
+  border-radius: 8px;
+  background: #0b5ed7;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.predict-button:hover {
+  background: #084db5;
+}
+
+.prediction-result {
+  margin-top: 15px;
+  padding: 14px;
+  border-radius: 8px;
+  background: #eef5ff;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.prediction-result span {
+  font-size: 12px;
+  color: #687386;
+}
+
+.prediction-result strong {
+  font-size: 18px;
+  color: #0b5ed7;
+}
+
+/* ==========================================
+   PROJECT MODULES
+   ========================================== */
+
+.modules-section {
+  margin-top: 32px;
+}
+
+.modules-section .section-header {
+  margin-bottom: 18px;
+}
+
+.module-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+.module-card {
+  position: relative;
+  text-align: left;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.module-card:hover {
+  transform: translateY(-4px);
+  border-color: #2738c7;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.module-number {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2738c7;
+  margin-bottom: 12px;
+}
+
+.module-icon {
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
+.module-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+}
+
+.module-card p {
+  margin: 0 0 18px 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.module-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2738c7;
+}
+
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 1000px) {
+
+  .module-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+}
+
+@media (max-width: 600px) {
+
+  .module-grid {
+    grid-template-columns: 1fr;
+  }
+
+}

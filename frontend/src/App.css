@@ -1,0 +1,217 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+}
+
+.app-container {
+  min-height: 100vh;
+  display: flex;
+}
+
+/* LEFT SIDE */
+
+.left-panel {
+  width: 55%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0b5ed7, #1649a0);
+  color: white;
+  padding: 45px 60px;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 25px;
+  font-weight: bold;
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  background: white;
+  color: #0b5ed7;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.left-content {
+  max-width: 600px;
+  margin: auto 0;
+}
+
+.left-content h1 {
+  font-size: 46px;
+  line-height: 1.15;
+  margin-bottom: 25px;
+}
+
+.left-content p {
+  font-size: 18px;
+  line-height: 1.7;
+  opacity: 0.95;
+  margin-bottom: 30px;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 17px;
+}
+
+/* RIGHT SIDE */
+
+.right-panel {
+  width: 45%;
+  min-height: 100vh;
+  background: #f7f9fc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 430px;
+  background: white;
+  padding: 42px;
+  border-radius: 18px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.10);
+}
+
+.login-card h2 {
+  font-size: 30px;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #172033;
+}
+
+.subtitle {
+  text-align: center;
+  color: #687386;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 30px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+form label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #293448;
+  margin-bottom: 8px;
+}
+
+form input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  margin-bottom: 20px;
+  border: 1px solid #d5dce7;
+  border-radius: 8px;
+  outline: none;
+  font-size: 15px;
+  background: white;
+  color: #172033;
+}
+
+form input:focus {
+  border-color: #0b5ed7;
+  box-shadow: 0 0 0 3px rgba(11, 94, 215, 0.12);
+}
+
+form button[type="submit"] {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 8px;
+  background: #0b5ed7;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+form button[type="submit"]:hover {
+  background: #084db5;
+}
+
+.message {
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  background: #eef5ff;
+  color: #174ea6;
+}
+
+.switch-mode {
+  text-align: center;
+  margin-top: 25px;
+  color: #687386;
+  font-size: 14px;
+}
+
+.switch-button {
+  border: none;
+  background: none;
+  color: #0b5ed7;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 6px;
+  font-size: 14px;
+}
+
+.switch-button:hover {
+  text-decoration: underline;
+}
+
+/* MOBILE */
+
+@media (max-width: 850px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  .left-panel,
+  .right-panel {
+    width: 100%;
+    min-height: auto;
+  }
+
+  .left-panel {
+    padding: 35px 30px;
+  }
+
+  .left-content {
+    margin: 70px 0 30px;
+  }
+
+  .left-content h1 {
+    font-size: 34px;
+  }
+
+  .right-panel {
+    padding: 30px 20px;
+  }
+}

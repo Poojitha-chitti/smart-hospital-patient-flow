@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+target/
+
+# Environment / secrets
+.env
+application.properties
+
+# Python cache
+__pycache__/
+*.pyc
+
+# ML model
+*.pkl
+
+# IDE
+.vscode/
+
+# Temporary/test files
+*-test.json
+spark_error.txt
