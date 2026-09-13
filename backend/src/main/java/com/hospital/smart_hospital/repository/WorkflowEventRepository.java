@@ -1,0 +1,50 @@
+package com.hospital.smart_hospital.repository;
+
+import com.hospital.smart_hospital.model.WorkflowEvent;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+public interface WorkflowEventRepository extends JpaRepository<WorkflowEvent, Integer> {
+
+    @Query("""
+        SELECT
+            w.stage AS stage,
+            AVG(TIMESTAMPDIFF(MINUTE, w.queue_entry_time, w.service_start_time)) AS averageWaitingTime,
+            AVG(TIMESTAMPDIFF(MINUTE, w.service_start_time, w.service_end_time)) AS averageServiceTime
+        FROM WorkflowEvent w
+        GROUP BY w.stage
+        ORDER BY averageWaitingTime DESC
+        """)
+    List<BottleneckProjection> findBottleneckAnalysis();
+    @Query("""
+    SELECT w.stage,
+           AVG(TIMESTAMPDIFF(MINUTE,
+               w.queue_entry_time,
+               w.service_start_time))
+    FROM WorkflowEvent w
+    GROUP BY w.stage
+    ORDER BY AVG(TIMESTAMPDIFF(MINUTE,
+               w.queue_entry_time,
+               w.service_start_time)) DESC
+""")
+List<Object[]> findStageWaitingPatterns();
+
+@Query("""
+    SELECT HOUR(v.arrival_time), COUNT(v.visit_id)
+    FROM Visit v
+    GROUP BY HOUR(v.arrival_time)
+    ORDER BY COUNT(v.visit_id) DESC
+""")
+List<Object[]> findArrivalHourPatterns();
+
+@Query("""
+    SELECT COUNT(w.event_id)
+    FROM WorkflowEvent w
+    WHERE TIMESTAMPDIFF(MINUTE,
+          w.queue_entry_time,
+          w.service_start_time) >= 20
+""")
+Long countHighWaitingEvents();
+}
