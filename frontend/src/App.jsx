@@ -5,6 +5,7 @@ import PatientFlow from "./PatientFlow";
 import DataMining from "./DataMining";
 import ResourceAnalysis from "./ResourceAnalysis";
 import DecisionSupport from "./DecisionSupport";
+import { API_URL } from "./config";
 
 function App() {
   const role = localStorage.getItem("role");
@@ -78,9 +79,9 @@ function App() {
     }
 
     const endpoint = isRegister
-      ? "http://192.168.43.177:8080/api/auth/register"
-      : "http://192.168.43.177:8080/api/auth/login";
-
+  ? `${API_URL}/api/auth/register`
+  : `${API_URL}/api/auth/login`;
+  
     try {
       const response = await fetch(endpoint, {
         method: "POST",

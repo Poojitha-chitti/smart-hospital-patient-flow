@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import "./PatientFlow.css";
+import { API_URL } from "./config";
 
 function PatientFlow() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://192.168.43.177:8080/api/workflow-events")
+    fetch(`${API_URL}/api/workflow-events`)
       .then((response) => response.json())
       .then((data) => {
         setEvents(data);

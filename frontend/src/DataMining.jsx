@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import "./DataMining.css";
+import { API_URL } from "./config";
 
 function DataMining() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://192.168.43.177:8080/api/data-mining/patterns")
+    fetch(`${API_URL}/api/data-mining/patterns`)
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to load data mining results");

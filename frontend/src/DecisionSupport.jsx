@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./DecisionSupport.css";
+import { API_URL } from "./config";
 
 function DecisionSupport() {
   const [bottlenecks, setBottlenecks] = useState([]);
@@ -16,11 +17,11 @@ function DecisionSupport() {
           inputResponse,
         ] = await Promise.all([
           fetch(
-            "http://192.168.43.177:8080/api/bottleneck-analysis"
-          ),
+  `${API_URL}/api/bottleneck-analysis`
+),
           fetch(
-            "http://192.168.43.177:8080/api/ml/current-input"
-          ),
+  `${API_URL}/api/ml/current-input`
+),
         ]);
 
         if (
@@ -42,8 +43,8 @@ function DecisionSupport() {
         setMlInput(inputData);
 
         // Send current database conditions to ML service
-        const mlResponse = await fetch(
-          "http://192.168.43.177:8080/api/ml/predict",
+       const mlResponse = await fetch(
+  `${API_URL}/api/ml/predict`,
           {
             method: "POST",
             headers: {

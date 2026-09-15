@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Dashboard.css";
+import { API_URL } from "./config";
 
 function Dashboard() {
   const [bottlenecks, setBottlenecks] = useState([]);
@@ -20,21 +21,21 @@ function Dashboard() {
   const role = localStorage.getItem("role");
 
   useEffect(() => {
-    fetch("http://192.168.43.177:8080/api/visits")
+    fetch(`${API_URL}/api/visits`)
       .then((response) => response.json())
       .then((data) => setVisits(data))
       .catch((error) =>
         console.error("Visits error:", error)
       );
 
-    fetch("http://192.168.43.177:8080/api/bottleneck-analysis")
+    fetch(`${API_URL}/api/bottleneck-analysis`)
       .then((response) => response.json())
       .then((data) => setBottlenecks(data))
       .catch((error) =>
         console.error("Bottleneck error:", error)
       );
 
-    fetch("http://192.168.43.177:8080/api/ml/current-input")
+    fetch(`${API_URL}/api/ml/current-input`)
       .then((response) => response.json())
       .then((data) => {
         setMlInput(data);
@@ -50,8 +51,8 @@ function Dashboard() {
       setMlCondition("Checking...");
 
       const response = await fetch(
-        "http://192.168.43.177:8080/api/ml/predict-current"
-      );
+  `${API_URL}/api/ml/predict-current`
+);
 
       const data = await response.json();
 

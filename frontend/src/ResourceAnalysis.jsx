@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./ResourceAnalysis.css";
+import { API_URL } from "./config";
 
 function ResourceAnalysis() {
   const [staff, setStaff] = useState([]);
@@ -9,14 +10,14 @@ function ResourceAnalysis() {
 
   useEffect(() => {
     Promise.all([
-      fetch("http://192.168.43.177:8080/api/staff").then((res) => {
+      fetch(`${API_URL}/api/staff`).then((res) => {
         if (!res.ok) {
           throw new Error("Failed to load staff information");
         }
         return res.json();
       }),
 
-      fetch("http://192.168.43.177:8080/api/resources").then((res) => {
+      fetch(`${API_URL}/api/resources`).then((res) => {
         if (!res.ok) {
           throw new Error("Failed to load resource information");
         }
