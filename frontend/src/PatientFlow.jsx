@@ -4,20 +4,28 @@ import { API_URL } from "./config";
 
 function PatientFlow() {
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+const [totalEvents, setTotalEvents] = useState(0);
+const [registrationEvents, setRegistrationEvents] = useState(0);
+const [opEvents, setOpEvents] = useState(0);
+const [pharmacyEvents, setPharmacyEvents] = useState(0);
+const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/workflow-events`)
-      .then((response) => response.json())
-      .then((data) => {
-        setEvents(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Workflow events error:", error);
-        setLoading(false);
-      });
-  }, []);
+  fetch(`${API_URL}/api/workflow-events/summary`)
+    .then((response) => response.json())
+    .then((data) => {
+      setEvents(data.events);
+      setTotalEvents(data.total);
+      setRegistrationEvents(data.registration);
+      setOpEvents(data.op);
+      setPharmacyEvents(data.pharmacy);
+      setLoading(false);
+    })
+    .catch((error) => {
+      console.error("Workflow events error:", error);
+      setLoading(false);
+    });
+}, []);
 
   return (
     <div className="patient-flow-page">
@@ -73,21 +81,17 @@ function PatientFlow() {
 
         <div className="flow-card">
           <span>Total Workflow Events</span>
-          <strong>{events.length}</strong>
+          <strong>{totalEvents}</strong>
         </div>
 
         <div className="flow-card">
           <span>Registration Events</span>
-          <strong>
-            {events.filter((event) => event.stage === "REGISTRATION").length}
-          </strong>
+          <strong>{registrationEvents}</strong>
         </div>
 
         <div className="flow-card">
           <span>OP Events</span>
-          <strong>
-            {events.filter((event) => event.stage === "OP").length}
-          </strong>
+          <strong>{opEvents}</strong>
         </div>
 
         <div className="flow-card">

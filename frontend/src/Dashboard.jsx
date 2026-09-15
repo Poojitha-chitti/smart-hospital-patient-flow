@@ -4,7 +4,7 @@ import { API_URL } from "./config";
 
 function Dashboard() {
   const [bottlenecks, setBottlenecks] = useState([]);
-  const [visits, setVisits] = useState([]);
+  const [visitCount, setVisitCount] = useState(0);
   const [mlPrediction, setMlPrediction] = useState(null);
   const [mlCondition, setMlCondition] = useState("");
 
@@ -21,12 +21,12 @@ function Dashboard() {
   const role = localStorage.getItem("role");
 
   useEffect(() => {
-    fetch(`${API_URL}/api/visits`)
-      .then((response) => response.json())
-      .then((data) => setVisits(data))
-      .catch((error) =>
-        console.error("Visits error:", error)
-      );
+    fetch(`${API_URL}/api/visits/count`)
+  .then((response) => response.json())
+  .then((data) => setVisitCount(data))
+  .catch((error) =>
+    console.error("Visit count error:", error)
+  );
 
     fetch(`${API_URL}/api/bottleneck-analysis`)
       .then((response) => response.json())
@@ -184,7 +184,7 @@ function Dashboard() {
             </div>
 
             <div className="card-value">
-              {visits.length}
+              {visitCount}
             </div>
 
             <div className="card-info">
