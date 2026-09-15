@@ -22,3 +22,4 @@ __pycache__/
 # Temporary/test files
 *-test.json
 spark_error.txt
+hospital_db_backup.sql
