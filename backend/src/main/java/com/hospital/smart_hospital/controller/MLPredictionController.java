@@ -23,7 +23,7 @@ public class MLPredictionController {
     public MLPredictionController(
             StaffRepository staffRepository,
             ResourceRepository resourceRepository,
-            @Value("${ML_SERVICE_URL}") String mlServiceUrl) {
+            @Value("${ml.service.url}") String mlServiceUrl) {
 
         this.staffRepository = staffRepository;
         this.resourceRepository = resourceRepository;
