@@ -7,11 +7,12 @@ import com.hospital.smart_hospital.model.Staff;
 import com.hospital.smart_hospital.repository.ResourceRepository;
 import com.hospital.smart_hospital.repository.StaffRepository;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/ml")
 public class MLPredictionController {
 
@@ -21,14 +22,15 @@ public class MLPredictionController {
 
     public MLPredictionController(
             StaffRepository staffRepository,
-            ResourceRepository resourceRepository) {
+            ResourceRepository resourceRepository,
+            @Value("${ML_SERVICE_URL}") String mlServiceUrl) {
 
         this.staffRepository = staffRepository;
         this.resourceRepository = resourceRepository;
 
         this.restClient = RestClient.builder()
-        .baseUrl(System.getenv().getOrDefault("ML_SERVICE_URL", "http://127.0.0.1:5000"))
-        .build();
+                .baseUrl(mlServiceUrl)
+                .build();
     }
 
     @PostMapping("/predict")
@@ -46,12 +48,13 @@ public class MLPredictionController {
     public MLPredictionRequest getCurrentInput() {
 
         String department = "OP";
+
         Staff staff = staffRepository
-        .findAvailableStaff(department)
-        .stream()
-        .findFirst()
-        .orElseThrow(() ->
-                new RuntimeException("No available OP staff found"));
+                .findAvailableStaff(department)
+                .stream()
+                .findFirst()
+                .orElseThrow(() ->
+                        new RuntimeException("No available OP staff found"));
 
         Resource resource = resourceRepository
                 .findFirstByDepartment(department)
@@ -69,15 +72,16 @@ public class MLPredictionController {
 
         return request;
     }
+
     @GetMapping("/predict-current")
-public MLPredictionResponse predictCurrent() {
+    public MLPredictionResponse predictCurrent() {
 
-    MLPredictionRequest request = getCurrentInput();
+        MLPredictionRequest request = getCurrentInput();
 
-    return restClient.post()
-            .uri("/predict")
-            .body(request)
-            .retrieve()
-            .body(MLPredictionResponse.class);
-}
+        return restClient.post()
+                .uri("/predict")
+                .body(request)
+                .retrieve()
+                .body(MLPredictionResponse.class);
+    }
 }
