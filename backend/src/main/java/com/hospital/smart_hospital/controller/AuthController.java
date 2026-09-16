@@ -73,4 +73,55 @@ public class AuthController {
                 )
         );
     }
+    @PostMapping("/change-password")
+public ResponseEntity<?> changePassword(@RequestBody Map<String, String> request) {
+
+    String username = request.get("username");
+    String currentPassword = request.get("currentPassword");
+    String newPassword = request.get("newPassword");
+
+    if (username == null || currentPassword == null || newPassword == null) {
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of("message", "All fields are required"));
+    }
+
+    Optional<User> existingUser =
+            userRepository.findByUsername(username);
+
+    if (existingUser.isEmpty()) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "User not found"));
+    }
+
+    User databaseUser = existingUser.get();
+
+    // Only ADMIN can change password through this endpoint
+    if (!"ADMIN".equalsIgnoreCase(databaseUser.getRole())) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(Map.of("message", "Only admin can change password"));
+    }
+
+    // Check current password
+    if (!databaseUser.getPassword().equals(currentPassword)) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", "Current password is incorrect"));
+    }
+
+    if (newPassword.length() < 6) {
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of("message", "New password must be at least 6 characters"));
+    }
+
+    databaseUser.setPassword(newPassword);
+    userRepository.save(databaseUser);
+
+    return ResponseEntity.ok(
+            Map.of("message", "Password changed successfully")
+    );
+}
 }
