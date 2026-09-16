@@ -45,43 +45,65 @@ public class MLPredictionController {
     }
 
     @GetMapping("/current-input")
-    public MLPredictionRequest getCurrentInput() {
+public MLPredictionRequest getCurrentInput(
+        @RequestParam(defaultValue = "OP") String stage) {
 
-        String department = "OP";
+    String department;
 
-        Staff staff = staffRepository
-                .findAvailableStaff(department)
-                .stream()
-                .findFirst()
-                .orElseThrow(() ->
-                        new RuntimeException("No available OP staff found"));
+    switch (stage.toUpperCase()) {
+        case "REGISTRATION":
+            department = "Registration";
+            break;
 
-        Resource resource = resourceRepository
-                .findFirstByDepartment(department)
-                .orElseThrow(() ->
-                        new RuntimeException("No OP resource found"));
+        case "PHARMACY":
+            department = "Pharmacy";
+            break;
 
-        MLPredictionRequest request = new MLPredictionRequest();
-
-        request.setStage("OP");
-        request.setPatient_type("OP");
-        request.setStaff_available(1);
-        request.setStaff_capacity(staff.getCapacity());
-        request.setResource_capacity(resource.getCapacity());
-        request.setResource_available(resource.getAvailable());
-
-        return request;
+        case "OP":
+        default:
+            department = "OP";
+            stage = "OP";
+            break;
     }
 
+    Staff staff = staffRepository
+            .findAvailableStaff(department)
+            .stream()
+            .findFirst()
+            .orElseThrow(() ->
+                    new RuntimeException(
+                            "No available staff found for " + department));
+
+    Resource resource = resourceRepository
+            .findFirstByDepartment(department)
+            .orElseThrow(() ->
+                    new RuntimeException(
+                            "No resource found for " + department));
+
+    MLPredictionRequest request = new MLPredictionRequest();
+
+    request.setStage(stage.toUpperCase());
+    request.setPatient_type(stage.toUpperCase());
+
+    request.setStaff_available(1);
+    request.setStaff_capacity(staff.getCapacity());
+
+    request.setResource_capacity(resource.getCapacity());
+    request.setResource_available(resource.getAvailable());
+
+    return request;
+}
     @GetMapping("/predict-current")
-    public MLPredictionResponse predictCurrent() {
+public MLPredictionResponse predictCurrent(
+        @RequestParam(defaultValue = "OP") String stage) {
 
-        MLPredictionRequest request = getCurrentInput();
+    MLPredictionRequest request =
+            getCurrentInput(stage);
 
-        return restClient.post()
-                .uri("/predict")
-                .body(request)
-                .retrieve()
-                .body(MLPredictionResponse.class);
-    }
+    return restClient.post()
+            .uri("/predict")
+            .body(request)
+            .retrieve()
+            .body(MLPredictionResponse.class);
+}
 }

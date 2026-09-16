@@ -4,10 +4,11 @@ import { API_URL } from "./config";
 
 function DecisionSupport() {
   const [bottlenecks, setBottlenecks] = useState([]);
-  const [mlResult, setMlResult] = useState(null);
-  const [mlInput, setMlInput] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+const [mlResult, setMlResult] = useState(null);
+const [mlInput, setMlInput] = useState(null);
+const [selectedStage, setSelectedStage] = useState("OP");
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState("");
 
   useEffect(() => {
     const loadDecisionData = async () => {
@@ -20,7 +21,7 @@ function DecisionSupport() {
   `${API_URL}/api/bottleneck-analysis`
 ),
           fetch(
-  `${API_URL}/api/ml/current-input`
+  `${API_URL}/api/ml/current-input?stage=${selectedStage}`,
 ),
         ]);
 
@@ -80,7 +81,7 @@ function DecisionSupport() {
     };
 
     loadDecisionData();
-  }, []);
+  }, [selectedStage]);
 
   if (loading) {
     return (
@@ -152,7 +153,47 @@ function DecisionSupport() {
 
       </header>
 
+{/* STAGE SELECTION */}
 
+<section className="stage-selection">
+
+  <div>
+    <span className="decision-label">
+      ANALYSIS STAGE
+    </span>
+
+    <h2>
+      Select Workflow Stage
+    </h2>
+
+    <p>
+      Choose the hospital workflow stage for
+      the current ML prediction.
+    </p>
+  </div>
+
+  <select
+    value={selectedStage}
+    onChange={(e) => {
+      setLoading(true);
+      setError("");
+      setSelectedStage(e.target.value);
+    }}
+  >
+    <option value="REGISTRATION">
+      Registration
+    </option>
+
+    <option value="OP">
+      OP Consultation
+    </option>
+
+    <option value="PHARMACY">
+      Pharmacy
+    </option>
+  </select>
+
+</section>
       {/* PRIMARY BOTTLENECK */}
 
       {mainBottleneck && (
