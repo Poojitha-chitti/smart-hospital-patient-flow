@@ -6,6 +6,7 @@ import DataMining from "./DataMining";
 import ResourceAnalysis from "./ResourceAnalysis";
 import DecisionSupport from "./DecisionSupport";
 import { API_URL } from "./config";
+import ChangePassword from "./ChangePassword";
 
 function App() {
   const role = localStorage.getItem("role");
@@ -68,7 +69,19 @@ function App() {
 
     return <DecisionSupport />;
   }
+if (path === "/change-password") {
+  if (!loggedInUser || !role) {
+    window.location.href = "/";
+    return null;
+  }
 
+  if (role !== "ADMIN") {
+    window.location.href = "/dashboard";
+    return null;
+  }
+
+  return <ChangePassword />;
+}
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");

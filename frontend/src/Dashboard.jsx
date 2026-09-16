@@ -89,6 +89,9 @@ function Dashboard() {
     bottlenecks.length > 0
       ? bottlenecks[0]
       : null;
+  const openChangePassword = () => {
+  window.location.href = "/change-password";
+};
 
   const logout = () => {
     localStorage.removeItem("username");
@@ -137,17 +140,22 @@ function Dashboard() {
 
         <div className="user-section">
 
-          <div>
-            <strong>{username}</strong>
-            <span>{role}</span>
-          </div>
+  <div>
+    <strong>{username}</strong>
+    <span>{role}</span>
+  </div>
 
-          <button onClick={logout}>
-            Logout
-          </button>
+  {role === "ADMIN" && (
+    <button onClick={openChangePassword}>
+      Change Password
+    </button>
+  )}
 
-        </div>
+  <button onClick={logout}>
+    Logout
+  </button>
 
+</div>
       </header>
 
 
