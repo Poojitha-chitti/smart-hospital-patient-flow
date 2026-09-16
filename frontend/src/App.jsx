@@ -124,85 +124,55 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="left-panel">
+      <div className="login-card">
         <div className="brand">
           <div className="brand-icon">+</div>
           <span>Smart Hospital</span>
         </div>
 
-        <div className="left-content">
-          <h1>
-            Smarter Patient Flow.
-            <br />
-            Better Hospital Decisions.
-          </h1>
+        <h2>{isRegister ? "Create Account" : "Login"}</h2>
 
-          <p>
-            Analyze patient flow, identify bottlenecks, predict waiting
-            conditions, and support better operational decisions.
-          </p>
+        <form onSubmit={handleSubmit}>
+          <label>Username</label>
 
-          <div className="features">
-            <div>✓ Patient Flow Analysis</div>
-            <div>✓ Bottleneck Detection</div>
-            <div>✓ ML-Based Prediction</div>
-            <div>✓ Decision Support</div>
-          </div>
-        </div>
-      </div>
+          <input
+            type="text"
+            placeholder="Enter username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
 
-      <div className="right-panel">
-        <div className="login-card">
-          <h2>{isRegister ? "Create Account" : "Welcome Back"}</h2>
+          <label>Password</label>
 
-          <p className="subtitle">
-            {isRegister
-              ? "Register as a hospital staff member"
-              : "Sign in to access the Smart Hospital dashboard"}
-          </p>
+          <input
+            type="password"
+            placeholder="Enter password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
-          <form onSubmit={handleSubmit}>
-            <label>Username</label>
+          <button type="submit">
+            {isRegister ? "Register" : "Login"}
+          </button>
+        </form>
 
-            <input
-              type="text"
-              placeholder="Enter username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
+        {message && <div className="message">{message}</div>}
 
-            <label>Password</label>
+        <div className="switch-mode">
+          {isRegister
+            ? "Already have an account?"
+            : "Don't have an account?"}
 
-            <input
-              type="password"
-              placeholder="Enter password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-
-            <button type="submit">
-              {isRegister ? "Register" : "Login"}
-            </button>
-          </form>
-
-          {message && <div className="message">{message}</div>}
-
-          <div className="switch-mode">
-            {isRegister
-              ? "Already have an account?"
-              : "Don't have an account?"}
-
-            <button
-              type="button"
-              className="switch-button"
-              onClick={() => {
-                setIsRegister(!isRegister);
-                setMessage("");
-              }}
-            >
-              {isRegister ? "Login" : "Register"}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="switch-button"
+            onClick={() => {
+              setIsRegister(!isRegister);
+              setMessage("");
+            }}
+          >
+            {isRegister ? "Login" : "Register"}
+          </button>
         </div>
       </div>
     </div>
