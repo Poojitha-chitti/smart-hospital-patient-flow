@@ -96,9 +96,7 @@ const [loading, setLoading] = useState(true);
 
         <div className="flow-card">
           <span>Pharmacy Events</span>
-          <strong>
-            {events.filter((event) => event.stage === "PHARMACY").length}
-          </strong>
+          <strong>{pharmacyEvents}</strong>
         </div>
 
       </div>
