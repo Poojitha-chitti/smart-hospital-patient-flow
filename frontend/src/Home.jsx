@@ -17,6 +17,13 @@ function Home() {
       </div>
 
       <div className="home-section">
+        <div className="home-welcome">
+  <h2>Welcome to Smart Hospital</h2>
+  <p>
+    Manage patient operations and access hospital analytics and
+    decision-support tools from one place.
+  </p>
+</div>
         <h2>Hospital Operations</h2>
 
         <div className="home-grid">
