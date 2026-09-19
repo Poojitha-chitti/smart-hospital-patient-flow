@@ -23,6 +23,8 @@ public class Patient {
     private String phone;
     private String department;
     private LocalDateTime registration_time;
+    private LocalDateTime consultation_start_time;
+    private LocalDateTime consultation_end_time;
     private String status;
 
     public Integer getPatient_id() { return patient_id; }
@@ -45,10 +47,35 @@ public class Patient {
 
     public String getDepartment() { return department; }
     public void setDepartment(String department) { this.department = department; }
-
-    public LocalDateTime getRegistration_time() { return registration_time; }
-    public void setRegistration_time(LocalDateTime registration_time) { this.registration_time = registration_time; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+public LocalDateTime getRegistration_time() {
+    return registration_time;
 }
+
+public void setRegistration_time(LocalDateTime registration_time) {
+    this.registration_time = registration_time;
+}
+
+public LocalDateTime getConsultation_start_time() {
+    return consultation_start_time;
+}
+
+public void setConsultation_start_time(LocalDateTime consultation_start_time) {
+    this.consultation_start_time = consultation_start_time;
+}
+
+public LocalDateTime getConsultation_end_time() {
+    return consultation_end_time;
+}
+
+public void setConsultation_end_time(LocalDateTime consultation_end_time) {
+    this.consultation_end_time = consultation_end_time;
+}
+
+public String getStatus() {
+    return status;
+}
+
+public void setStatus(String status) {
+    this.status = status;
+}
+   }

@@ -99,3 +99,17 @@
 .waiting-error {
     color: #c62828;
 }
+.consultation-button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    background: #0d47a1;
+    color: white;
+}
+
+.consultation-button:hover {
+    background: #08306f;
+}

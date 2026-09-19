@@ -37,6 +37,36 @@ function WaitingList() {
         loadWaitingPatients();
     }, []);
 
+    const updateStatus = async (patientId, newStatus) => {
+        try {
+            const response = await fetch(
+                `${API_URL}/api/patients/${patientId}/status`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to update patient status");
+            }
+
+            // Reload the waiting list.
+            // The patient will disappear from this page
+            // because it is no longer WAITING.
+            loadWaitingPatients();
+
+        } catch (err) {
+            console.error(err);
+            setError("Unable to update patient status.");
+        }
+    };
+
     return (
         <div className="waiting-page">
 
@@ -72,7 +102,9 @@ function WaitingList() {
             {!loading && !error && patients.length === 0 && (
                 <div className="empty-waiting">
                     <h3>No patients are currently waiting</h3>
-                    <p>Newly registered patients with WAITING status will appear here.</p>
+                    <p>
+                        New patients with WAITING status will appear here.
+                    </p>
                 </div>
             )}
 
@@ -88,6 +120,7 @@ function WaitingList() {
                                 <th>Department</th>
                                 <th>Registration Time</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
 
@@ -100,10 +133,25 @@ function WaitingList() {
                                     <td>{patient.gender || "-"}</td>
                                     <td>{patient.department}</td>
                                     <td>{patient.registration_time}</td>
+
                                     <td>
                                         <span className="waiting-status">
                                             {patient.status}
                                         </span>
+                                    </td>
+
+                                    <td>
+                                        <button
+                                            className="consultation-button"
+                                            onClick={() =>
+                                                updateStatus(
+                                                    patient.patient_id,
+                                                    "IN CONSULTATION"
+                                                )
+                                            }
+                                        >
+                                            Start Consultation
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

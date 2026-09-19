@@ -114,3 +114,17 @@
 .patient-error {
     color: #c62828;
 }
+.complete-button {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    background: #00838f;
+    color: white;
+}
+
+.complete-button:hover {
+    background: #006064;
+}

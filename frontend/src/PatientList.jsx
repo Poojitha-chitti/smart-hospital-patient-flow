@@ -28,7 +28,63 @@ function PatientList() {
             setLoading(false);
         }
     };
+const updateStatus = async (patientId, newStatus) => {
+    try {
+        const response = await fetch(
+            `${API_URL}/api/patients/${patientId}/status`,
+            {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            }
+        );
 
+        if (!response.ok) {
+            throw new Error("Failed to update patient status");
+        }
+
+        // Reload the patient list so the new status appears immediately.
+        loadPatients();
+
+    } catch (err) {
+        console.error(err);
+        setError("Unable to update patient status.");
+    }
+};
+const calculateDuration = (startTime, endTime) => {
+    if (!startTime || !endTime) {
+        return "-";
+    }
+
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    const differenceInSeconds = Math.floor(
+        (end - start) / 1000
+    );
+
+    if (differenceInSeconds < 0) {
+        return "-";
+    }
+
+    const hours = Math.floor(differenceInSeconds / 3600);
+    const minutes = Math.floor((differenceInSeconds % 3600) / 60);
+    const seconds = differenceInSeconds % 60;
+
+    if (hours > 0) {
+        return `${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    if (minutes > 0) {
+        return `${minutes}m ${seconds}s`;
+    }
+
+    return `${seconds}s`;
+};
     useEffect(() => {
         loadPatients();
     }, []);
@@ -87,7 +143,10 @@ function PatientList() {
                                 <th>Phone</th>
                                 <th>Department</th>
                                 <th>Registration Time</th>
+                                <th>Waiting Time</th>
+                                <th>Consultation Time</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
 
@@ -103,10 +162,38 @@ function PatientList() {
                                     <td>{patient.department}</td>
                                     <td>{patient.registration_time}</td>
                                     <td>
+    {calculateDuration(
+        patient.registration_time,
+        patient.consultation_start_time
+    )}
+</td>
+
+<td>
+    {calculateDuration(
+        patient.consultation_start_time,
+        patient.consultation_end_time
+    )}
+</td>
+                                    <td>
                                         <span className="patient-status">
                                             {patient.status}
-                                        </span>
+                                        </span>    
                                     </td>
+                                    <td>
+    {patient.status === "IN CONSULTATION" && (
+        <button
+            className="complete-button"
+            onClick={() =>
+                updateStatus(
+                    patient.patient_id,
+                    "COMPLETED"
+                )
+            }
+        >
+            Complete Consultation
+        </button>
+    )}
+</td>
                                 </tr>
                             ))}
                         </tbody>

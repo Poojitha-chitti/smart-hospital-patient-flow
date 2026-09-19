@@ -68,4 +68,14 @@ public interface WorkflowEventRepository extends JpaRepository<WorkflowEvent, In
         WHERE w.stage = :stage
         """)
     long countWorkflowEventsByStage(@Param("stage") String stage);
+    @Query("""
+    SELECT w
+    FROM WorkflowEvent w
+    WHERE w.visit_id = :visitId
+      AND w.stage = :stage
+    """)
+WorkflowEvent findByVisitIdAndStage(
+        @Param("visitId") Integer visitId,
+        @Param("stage") String stage
+);
 }

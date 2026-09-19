@@ -1,6 +1,8 @@
 package com.hospital.smart_hospital.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -10,8 +12,9 @@ import java.time.LocalDateTime;
 @Table(name = "workflow_events")
 public class WorkflowEvent {
 
-    @Id
-    private Integer event_id;
+   @Id
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+private Integer event_id;
 
     private Integer visit_id;
     private String stage;
