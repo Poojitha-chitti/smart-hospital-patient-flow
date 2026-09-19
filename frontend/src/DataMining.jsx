@@ -88,7 +88,12 @@ function DataMining() {
 
   return (
     <div className="dm-page">
-
+<button
+  className="back-home-button"
+  onClick={() => (window.location.href = "/home")}
+>
+  ← Back to Home
+</button>
       {/* HEADER */}
 
       <header className="dm-top">

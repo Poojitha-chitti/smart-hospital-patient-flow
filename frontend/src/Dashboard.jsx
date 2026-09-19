@@ -118,7 +118,12 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-
+      <button
+  className="back-home-button"
+  onClick={() => (window.location.href = "/home")}
+>
+  ← Back to Home
+</button>
       {/* TOP BAR */}
       <header className="topbar">
 

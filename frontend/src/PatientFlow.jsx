@@ -29,7 +29,12 @@ const [loading, setLoading] = useState(true);
 
   return (
     <div className="patient-flow-page">
-
+<button
+  className="back-home-button"
+  onClick={() => (window.location.href = "/home")}
+>
+  ← Back to Home
+</button>
       <div className="flow-header">
         <div>
           <h1>Patient Flow</h1>

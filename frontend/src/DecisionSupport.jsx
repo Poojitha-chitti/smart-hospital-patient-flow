@@ -117,7 +117,12 @@ const [error, setError] = useState("");
 
   return (
     <div className="decision-page">
-
+<button
+  className="back-home-button"
+  onClick={() => (window.location.href = "/home")}
+>
+  ← Back to Home
+</button>
       {/* HEADER */}
 
       <header className="decision-header">
@@ -194,6 +199,7 @@ const [error, setError] = useState("");
   </select>
 
 </section>
+
       {/* PRIMARY BOTTLENECK */}
 
       {mainBottleneck && (

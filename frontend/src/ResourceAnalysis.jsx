@@ -122,7 +122,12 @@ function ResourceAnalysis() {
 
   return (
     <div className="resource-page">
-
+<button
+  className="back-home-button"
+  onClick={() => (window.location.href = "/home")}
+>
+  ← Back to Home
+</button>
       {/* HEADER */}
 
       <div className="resource-header">
