@@ -1,0 +1,78 @@
+.room-list-page {
+  padding: 30px;
+  background: #f7fbff;
+  min-height: 100vh;
+}
+
+.room-list-header {
+  margin-bottom: 25px;
+}
+
+.room-list-header h2 {
+  margin: 0;
+  color: #0d47a1;
+  font-size: 28px;
+}
+
+.room-list-header p {
+  margin-top: 8px;
+  color: #546e7a;
+}
+
+.room-table-container {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  overflow-x: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.room-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.room-table th {
+  background: #e3f2fd;
+  color: #0d47a1;
+  padding: 14px;
+  text-align: left;
+}
+
+.room-table td {
+  padding: 14px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #37474f;
+}
+
+.room-status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.room-status.available {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.room-status.busy {
+  background: #ffebee;
+  color: #c62828;
+}
+.back-home-button {
+  background: #0d47a1;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.back-home-button:hover {
+  background: #083b85;
+}

@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -13,6 +14,7 @@ public class Visit {
     @Id
     private Integer visit_id;
 
+    private LocalDate visit_date;
     private LocalDateTime arrival_time;
     private String patient_type;
     private String status;
@@ -23,6 +25,14 @@ public class Visit {
 
     public void setVisit_id(Integer visit_id) {
         this.visit_id = visit_id;
+    }
+
+    public LocalDate getVisit_date() {
+        return visit_date;
+    }
+
+    public void setVisit_date(LocalDate visit_date) {
+        this.visit_date = visit_date;
     }
 
     public LocalDateTime getArrival_time() {

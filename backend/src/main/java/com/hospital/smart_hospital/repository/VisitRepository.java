@@ -8,4 +8,7 @@ public interface VisitRepository extends JpaRepository<Visit, Integer> {
 
     @Query("SELECT COUNT(v) FROM Visit v")
     long countTotalVisits();
+
+    @Query("SELECT COALESCE(MAX(v.visit_id), 0) FROM Visit v")
+    int findMaxVisitId();
 }

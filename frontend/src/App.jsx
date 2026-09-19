@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./App.css";
+import Home from "./Home";
 import Dashboard from "./Dashboard";
 import PatientFlow from "./PatientFlow";
 import DataMining from "./DataMining";
@@ -7,6 +8,11 @@ import ResourceAnalysis from "./ResourceAnalysis";
 import DecisionSupport from "./DecisionSupport";
 import { API_URL } from "./config";
 import ChangePassword from "./ChangePassword";
+import PatientRegistration from "./PatientRegistration";
+import WaitingList from "./WaitingList";
+import PatientList from "./PatientList";
+import DoctorList from "./DoctorList";
+import RoomList from "./RoomList";
 
 function App() {
   const role = localStorage.getItem("role");
@@ -19,6 +25,35 @@ function App() {
 
   const path = window.location.pathname;
 
+  // Protected Home page
+  if (path === "/home") {
+    if (!loggedInUser || !role) {
+      window.location.href = "/";
+      return null;
+    }
+
+    return <Home />;
+  }
+
+  
+  if (path === "/doctor-list") {
+    return <DoctorList />;
+}
+if (path === "/room-list") {
+  return <RoomList />;
+}
+  if (path === "/patient-list") {
+    return <PatientList />;
+}
+
+  if (path === "/waiting-list") {
+    return <WaitingList />;
+}
+
+if (path === "/patient-registration") {
+    return <PatientRegistration />;
+}
+
   // Protected pages
   if (path === "/dashboard") {
     if (!loggedInUser || !role) {
@@ -28,6 +63,7 @@ function App() {
 
     return <Dashboard />;
   }
+  
 
   if (path === "/patient-flow") {
     if (!loggedInUser || !role) {
@@ -82,6 +118,7 @@ if (path === "/change-password") {
 
   return <ChangePassword />;
 }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
@@ -125,8 +162,8 @@ if (path === "/change-password") {
         setMessage(`Welcome, ${data.username}! Login successful.`);
 
         setTimeout(() => {
-          window.location.href = "/dashboard";
-        }, 800);
+  window.location.href = "/home";
+}, 800);
       }
     } catch (error) {
       setMessage(
