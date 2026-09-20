@@ -94,9 +94,21 @@ if ("OP".equalsIgnoreCase(patient.getDepartment())) {
     }
 
     @GetMapping
-    public List<Patient> getPatients() {
-        return patientRepository.findAllPatientsNewestFirst();
-    
+public List<Patient> getPatients(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "50") int size) {
+
+    if (page < 0) {
+        page = 0;
+    }
+
+    if (size <= 0 || size > 100) {
+        size = 50;
+    }
+
+    return patientRepository.findAllPatientsNewestFirst(
+            org.springframework.data.domain.PageRequest.of(page, size)
+    );
 }
 @PutMapping("/{patientId}/status")
 public ResponseEntity<?> updatePatientStatus(
