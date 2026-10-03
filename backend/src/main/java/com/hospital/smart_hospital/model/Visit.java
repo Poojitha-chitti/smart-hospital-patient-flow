@@ -14,6 +14,8 @@ public class Visit {
     @Id
     private Integer visit_id;
 
+    private String display_visit_id;
+
     private LocalDate visit_date;
     private LocalDateTime arrival_time;
     private String patient_type;
@@ -25,6 +27,14 @@ public class Visit {
 
     public void setVisit_id(Integer visit_id) {
         this.visit_id = visit_id;
+    }
+
+    public String getDisplay_visit_id() {
+        return display_visit_id;
+    }
+
+    public void setDisplay_visit_id(String display_visit_id) {
+        this.display_visit_id = display_visit_id;
     }
 
     public LocalDate getVisit_date() {

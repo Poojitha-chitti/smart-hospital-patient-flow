@@ -388,3 +388,62 @@
   }
 
 }
+
+
+/* Apriori Association Rule Mining */
+.dm-apriori {
+  margin-top: 28px;
+}
+
+.apriori-meta {
+  font-size: 13px;
+  color: #64748b;
+  text-align: right;
+  max-width: 320px;
+}
+
+.apriori-table-wrap {
+  overflow-x: auto;
+  margin-top: 18px;
+}
+
+.apriori-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.apriori-table th,
+.apriori-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: top;
+}
+
+.apriori-table th {
+  font-weight: 700;
+  color: #334155;
+  background: #f8fafc;
+}
+
+.apriori-empty,
+.apriori-note {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 14px;
+}
+
+.apriori-note {
+  margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+  .apriori-meta {
+    text-align: left;
+    margin-top: 8px;
+  }
+}

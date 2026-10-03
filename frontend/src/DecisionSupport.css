@@ -322,3 +322,60 @@
     padding: 18px;
   }
 }
+
+/* STAGE AND PATIENT TYPE SELECTION */
+
+.stage-selection {
+  max-width: 1250px;
+  margin: 0 auto 22px;
+  padding: 22px 25px;
+  background: white;
+  border: 1px solid #e4e8ef;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.stage-selection h2 {
+  margin: 7px 0;
+  font-size: 19px;
+}
+
+.stage-selection p {
+  margin: 0;
+  color: #687386;
+  font-size: 12px;
+}
+
+.stage-selection select {
+  min-width: 190px;
+  padding: 11px 12px;
+  border: 1px solid #dce2ea;
+  border-radius: 8px;
+  background: white;
+  color: #172033;
+  font-size: 13px;
+  outline-color: #0b5ed7;
+}
+
+.decision-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 850px) {
+  .decision-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-selection {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stage-selection select {
+    width: 100%;
+  }
+}

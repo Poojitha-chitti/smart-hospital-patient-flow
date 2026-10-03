@@ -1,647 +1,412 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./ResourceAnalysis.css";
 import { API_URL } from "./config";
 
 function ResourceAnalysis() {
   const [staff, setStaff] = useState([]);
   const [resources, setResources] = useState([]);
+  const [staffUsers, setStaffUsers] = useState([]);
+  const [selectedAreas, setSelectedAreas] = useState({});
+  const [selectedStaffIds, setSelectedStaffIds] = useState({});
   const [loading, setLoading] = useState(true);
+  const [savingUser, setSavingUser] = useState(null);
+  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    Promise.all([
-      fetch(`${API_URL}/api/staff`).then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to load staff information");
-        }
-        return res.json();
-      }),
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-      fetch(`${API_URL}/api/resources`).then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to load resource information");
-        }
-        return res.json();
-      }),
-    ])
-      .then(([staffData, resourceData]) => {
-        setStaff(staffData);
-        setResources(resourceData);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Resource analysis error:", error);
-        setError("Unable to load staff and resource information.");
-        setLoading(false);
+      const [staffResponse, resourceResponse, usersResponse] = await Promise.all([
+        fetch(`${API_URL}/api/staff`),
+        fetch(`${API_URL}/api/resources`),
+        fetch(`${API_URL}/api/admin/users/staff`),
+      ]);
+
+      if (!staffResponse.ok || !resourceResponse.ok || !usersResponse.ok) {
+        throw new Error("Unable to load staff and resource information.");
+      }
+
+      const [staffData, resourceData, usersData] = await Promise.all([
+        staffResponse.json(),
+        resourceResponse.json(),
+        usersResponse.json(),
+      ]);
+
+      setStaff(staffData);
+      setResources(resourceData);
+      setStaffUsers(usersData);
+
+      const areas = {};
+      const staffIds = {};
+
+      usersData.forEach((user) => {
+        areas[user.user_id] = user.work_area || "";
+        staffIds[user.user_id] = user.staff_id ? String(user.staff_id) : "";
       });
+
+      setSelectedAreas(areas);
+      setSelectedStaffIds(staffIds);
+    } catch (err) {
+      setError(err.message || "Unable to load staff and resource information.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="resource-page">
-        <div className="resource-loading">
-          Loading staff and resource information...
-        </div>
-      </div>
+  const stats = useMemo(() => {
+    const totalStaff = staff.length;
+    const availableStaff = staff.filter((person) => person.available).length;
+    const unavailableStaff = totalStaff - availableStaff;
+
+    const resourceCapacity = resources.reduce(
+      (sum, resource) => sum + Number(resource.capacity || 0),
+      0
     );
-  }
 
-  if (error) {
-    return (
-      <div className="resource-page">
-        <div className="resource-loading">
-          {error}
-        </div>
-      </div>
+    const resourceAvailable = resources.reduce(
+      (sum, resource) => sum + Number(resource.available || 0),
+      0
     );
-  }
 
-  // Staff calculations
-  const totalStaff = staff.length;
-
-  const availableStaff = staff.filter(
-    (person) => person.available
-  ).length;
-
-  const unavailableStaff =
-    totalStaff - availableStaff;
-
-  const totalStaffCapacity = staff.reduce(
-    (sum, person) => sum + Number(person.capacity || 0),
-    0
-  );
-
-  // Resource calculations
-  const totalResourceCapacity = resources.reduce(
-    (sum, resource) =>
-      sum + Number(resource.capacity || 0),
-    0
-  );
-
-  const totalResourceAvailable = resources.reduce(
-    (sum, resource) =>
-      sum + Number(resource.available || 0),
-    0
-  );
-
-  const totalResourceUsed =
-    totalResourceCapacity - totalResourceAvailable;
-
-  const overallResourceUtilization =
-    totalResourceCapacity > 0
-      ? (totalResourceUsed / totalResourceCapacity) * 100
-      : 0;
-
-  // Find the most utilized resource
-  const mostUtilizedResource =
-    resources.length > 0
+    const busiest = resources.length
       ? [...resources].sort((a, b) => {
-          const utilizationA =
-            a.capacity > 0
-              ? (a.capacity - a.available) / a.capacity
-              : 0;
-
-          const utilizationB =
-            b.capacity > 0
-              ? (b.capacity - b.available) / b.capacity
-              : 0;
-
+          const utilizationA = Number(a.capacity || 0)
+            ? (Number(a.capacity || 0) - Number(a.available || 0)) /
+              Number(a.capacity || 0)
+            : 0;
+          const utilizationB = Number(b.capacity || 0)
+            ? (Number(b.capacity || 0) - Number(b.available || 0)) /
+              Number(b.capacity || 0)
+            : 0;
           return utilizationB - utilizationA;
         })[0]
       : null;
 
-  // Find department with unavailable staff
-  const departmentsWithUnavailableStaff =
-    [
-      ...new Set(
-        staff
-          .filter((person) => !person.available)
-          .map((person) => person.department)
-      ),
-    ];
+    return {
+      totalStaff,
+      availableStaff,
+      unavailableStaff,
+      resourceCapacity,
+      resourceAvailable,
+      busiest,
+    };
+  }, [staff, resources]);
+
+  const workAreaLabel = (area) => {
+  if (area === "REGISTRATION") return "Registration";
+  if (area === "OP") return "OP Consultation";
+  if (area === "PHARMACY") return "Pharmacy";
+  if (area === "DIAGNOSTICS") return "Diagnostics";
+  return "Select work area";
+};
+
+  const staffOptionsForArea = (area) => {
+    if (!area) return [];
+    return staff.filter(
+      (person) =>
+        String(person.department || "").trim().toUpperCase() === area
+    );
+  };
+
+  const saveAssignment = async (userId) => {
+    const workArea = selectedAreas[userId];
+    const staffId = selectedStaffIds[userId];
+
+    if (!workArea) {
+      setError("Please select a work area.");
+      setMessage("");
+      return;
+    }
+
+    if (!staffId) {
+      setError("Please select a staff member.");
+      setMessage("");
+      return;
+    }
+
+    try {
+      setSavingUser(userId);
+      setError("");
+      setMessage("");
+
+      const workAreaResponse = await fetch(
+        `${API_URL}/api/admin/users/${userId}/work-area`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ work_area: workArea }),
+        }
+      );
+
+      const workAreaData = await workAreaResponse.json().catch(() => ({}));
+
+      if (!workAreaResponse.ok) {
+        throw new Error(
+          workAreaData.message || "Unable to update work area."
+        );
+      }
+
+      const staffIdResponse = await fetch(
+        `${API_URL}/api/admin/users/${userId}/staff-id`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ staff_id: Number(staffId) }),
+        }
+      );
+
+      const staffIdData = await staffIdResponse.json().catch(() => ({}));
+
+      if (!staffIdResponse.ok) {
+        throw new Error(
+          staffIdData.message || "Unable to link staff member."
+        );
+      }
+
+      setMessage("Staff account assignment saved successfully.");
+      await loadData();
+    } catch (err) {
+      setError(err.message || "Unable to save staff account assignment.");
+    } finally {
+      setSavingUser(null);
+    }
+  };
+
+  const handleAreaChange = (userId, area) => {
+    setSelectedAreas((current) => ({ ...current, [userId]: area }));
+
+    const matchingStaff = staffOptionsForArea(area);
+    const currentStaffId = String(selectedStaffIds[userId] || "");
+    const stillValid = matchingStaff.some(
+      (person) => String(person.staff_id) === currentStaffId
+    );
+
+    if (!stillValid) {
+      setSelectedStaffIds((current) => ({
+        ...current,
+        [userId]: matchingStaff[0] ? String(matchingStaff[0].staff_id) : "",
+      }));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="resource-page">
+        <main className="resource-main">
+          <div className="resource-empty">Loading staff and resource information...</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error && !staff.length && !resources.length && !staffUsers.length) {
+    return (
+      <div className="resource-page">
+        <main className="resource-main">
+          <div className="resource-empty resource-error">{error}</div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="resource-page">
-<button
-  className="back-home-button"
-  onClick={() => (window.location.href = "/home")}
+      <main className="resource-main">
+        <div className="resource-top-row">
+          <div>
+            <h1>Staff &amp; Resources</h1>
+            <p>Monitor staff availability and hospital resources.</p>
+          </div>
+
+          <button
+  className="resource-home-btn"
+  onClick={() =>
+    (window.location.href = "/home?view=operations")
+  }
 >
-  ← Back to Home
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+  Back
 </button>
-      {/* HEADER */}
-
-      <div className="resource-header">
-
-        <div>
-
-          <div className="resource-brand">
-            SMART HOSPITAL
-          </div>
-
-          <h1>
-            Staff & Resource Analysis
-          </h1>
-
-          <p>
-            Monitor staff availability and resource
-            capacity across hospital departments.
-          </p>
-
         </div>
 
-        <button
-          className="resource-back"
-          onClick={() => {
-            window.location.href = "/dashboard";
-          }}
-        >
-          ← Dashboard
-        </button>
-
-      </div>
-
-
-      {/* SUMMARY */}
-
-      <section className="resource-section">
-
-        <div className="section-heading">
-
-          <div>
-
-            <h2>
-              Current Operational Status
-            </h2>
-
-            <p>
-              Staff and resource conditions retrieved
-              from the hospital database.
-            </p>
-
-          </div>
-
+        <div className="resource-summary">
+          <strong>Staff and Resource Availability</strong>
+          <span>View the current availability of staff members and hospital resources.</span>
         </div>
 
+        {message && <div className="resource-message">{message}</div>}
+        {error && <div className="resource-inline-error">{error}</div>}
 
-        <div className="staff-grid">
-
-          <div className="staff-card">
-
-            <div className="staff-top">
-
-              <div className="staff-avatar">
-                S
-              </div>
-
-              <span className="status available">
-                Current
-              </span>
-
-            </div>
-
-            <h3>
-              Available Staff
-            </h3>
-
-            <p>
-              Currently available hospital staff
-            </p>
-
-            <div className="staff-details">
-
-              <div>
-                <span>Available</span>
-
-                <strong>
-                  {availableStaff}
-                </strong>
-              </div>
-
-              <div>
-                <span>Total</span>
-
-                <strong>
-                  {totalStaff}
-                </strong>
-              </div>
-
-            </div>
-
+        <section>
+          <div className="resource-section-head">
+            <h2>Staff Account Assignment</h2>
+            <p>Assign each staff login to the hospital area they handle and link it to the matching staff record.</p>
           </div>
 
-
-          <div className="staff-card">
-
-            <div className="staff-top">
-
-              <div className="staff-avatar">
-                C
-              </div>
-
-              <span className="status available">
-                Capacity
-              </span>
-
-            </div>
-
-            <h3>
-              Staff Capacity
-            </h3>
-
-            <p>
-              Combined capacity of registered staff
-            </p>
-
-            <div className="staff-details">
-
-              <div>
-                <span>Capacity</span>
-
-                <strong>
-                  {totalStaffCapacity}
-                </strong>
-              </div>
-
-              <div>
-                <span>Unavailable</span>
-
-                <strong>
-                  {unavailableStaff}
-                </strong>
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div className="staff-card">
-
-            <div className="staff-top">
-
-              <div className="staff-avatar">
-                R
-              </div>
-
-              <span className="status available">
-                Current
-              </span>
-
-            </div>
-
-            <h3>
-              Resource Utilization
-            </h3>
-
-            <p>
-              Overall utilization of available resources
-            </p>
-
-            <div className="staff-details">
-
-              <div>
-                <span>Utilization</span>
-
-                <strong>
-                  {overallResourceUtilization.toFixed(1)}%
-                </strong>
-              </div>
-
-              <div>
-                <span>Available</span>
-
-                <strong>
-                  {totalResourceAvailable}
-                </strong>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      {/* STAFF */}
-
-      <section className="resource-section">
-
-        <div className="section-heading">
-
-          <div>
-
-            <h2>
-              Staff Availability
-            </h2>
-
-            <p>
-              Current staff capacity and availability.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div className="staff-grid">
-
-          {staff.map((person) => (
-
-            <div
-              className="staff-card"
-              key={person.staff_id}
-            >
-
-              <div className="staff-top">
-
-                <div className="staff-avatar">
-                  {person.staff_name
-                    ? person.staff_name.charAt(0)
-                    : "S"}
-                </div>
-
-                <span
-                  className={
-                    person.available
-                      ? "status available"
-                      : "status unavailable"
-                  }
-                >
-                  {person.available
-                    ? "Available"
-                    : "Unavailable"}
-                </span>
-
-              </div>
-
-
-              <h3>
-                {person.staff_name}
-              </h3>
-
-              <p>
-                {person.role}
-              </p>
-
-
-              <div className="staff-details">
-
-                <div>
-
-                  <span>
-                    Department
-                  </span>
-
-                  <strong>
-                    {person.department}
-                  </strong>
-
-                </div>
-
-
-                <div>
-
-                  <span>
-                    Capacity
-                  </span>
-
-                  <strong>
-                    {person.capacity}
-                  </strong>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          ))}
-
-        </div>
-
-      </section>
-
-
-      {/* RESOURCES */}
-
-      <section className="resource-section">
-
-        <div className="section-heading">
-
-          <div>
-
-            <h2>
-              Hospital Resources
-            </h2>
-
-            <p>
-              Capacity and currently available
-              resources.
-            </p>
-
-          </div>
-
-        </div>
-
-
-        <div className="resource-table">
-
-          <table>
-
-            <thead>
-
-              <tr>
-
-                <th>
-                  Department
-                </th>
-
-                <th>
-                  Resource
-                </th>
-
-                <th>
-                  Total Capacity
-                </th>
-
-                <th>
-                  Available
-                </th>
-
-                <th>
-                  Utilization
-                </th>
-
-              </tr>
-
-            </thead>
-
-
-            <tbody>
-
-              {resources.map((resource) => {
-
-                const capacity =
-                  Number(resource.capacity || 0);
-
-                const available =
-                  Number(resource.available || 0);
-
-                const utilization =
-                  capacity > 0
-                    ? ((capacity - available) /
-                        capacity) *
-                      100
-                    : 0;
-
-                return (
-
-                  <tr
-                    key={resource.resource_id}
-                  >
-
-                    <td>
-                      {resource.department}
-                    </td>
-
-                    <td>
-                      <strong>
-                        {resource.resource_type}
-                      </strong>
-                    </td>
-
-                    <td>
-                      {capacity}
-                    </td>
-
-                    <td>
-                      {available}
-                    </td>
-
-                    <td>
-
-                      <div className="utilization-cell">
-
-                        <div className="utilization-track">
-
-                          <div
-                            className="utilization-bar"
-                            style={{
-                              width: `${utilization}%`,
-                            }}
-                          />
-
-                        </div>
-
-                        <span>
-                          {utilization.toFixed(1)}%
-                        </span>
-
-                      </div>
-
-                    </td>
-
+          <div className="staff-assignment-card">
+            <div className="staff-assignment-table-wrap">
+              <table className="staff-assignment-table">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Work Area</th>
+                    <th>Staff Member</th>
+                    <th>Action</th>
                   </tr>
+                </thead>
+                <tbody>
+                  {staffUsers.map((user) => {
+                    const area = selectedAreas[user.user_id] || "";
+                    const areaStaff = staffOptionsForArea(area);
 
-                );
-              })}
+                    return (
+                      <tr key={user.user_id}>
+                        <td className="assignment-username">{user.username}</td>
+                        <td className="assignment-email">{user.email || "No email"}</td>
+                        <td>
+                          <select
+                            className="assignment-select"
+                            value={area}
+                            onChange={(e) => handleAreaChange(user.user_id, e.target.value)}
+                            disabled={savingUser === user.user_id}
+                          >
+                            <option value="">Select area</option>
+                            <option value="REGISTRATION">Registration</option>
+<option value="OP">OP Consultation</option>
+<option value="PHARMACY">Pharmacy</option>
+<option value="DIAGNOSTICS">Diagnostics</option>
+                          </select>
+                        </td>
+                        <td>
+                          <select
+                            className="assignment-select"
+                            value={selectedStaffIds[user.user_id] || ""}
+                            onChange={(e) =>
+                              setSelectedStaffIds((current) => ({
+                                ...current,
+                                [user.user_id]: e.target.value,
+                              }))
+                            }
+                            disabled={savingUser === user.user_id || !area}
+                          >
+                            <option value="">Select staff</option>
+                            {areaStaff.map((person) => (
+                              <option key={person.staff_id} value={person.staff_id}>
+                                {person.staff_name} — {workAreaLabel(area)}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <button
+                            className="assignment-save-btn"
+                            onClick={() => saveAssignment(user.user_id)}
+                            disabled={savingUser === user.user_id}
+                          >
+                            {savingUser === user.user_id ? "Saving..." : "Save"}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-            </tbody>
+        <section>
+          <div className="resource-section-head">
+            <h2>Availability Summary</h2>
+          </div>
 
-          </table>
+          <div className="resource-fact-grid">
+            <div className="resource-fact-card">
+              <div className="big">{stats.availableStaff} of {stats.totalStaff}</div>
+              <div className="caption">Staff members available</div>
+            </div>
+            <div className="resource-fact-card">
+              <div className="big">{stats.resourceAvailable} of {stats.resourceCapacity}</div>
+              <div className="caption">Resource slots available</div>
+            </div>
+            <div className="resource-fact-card">
+              <div className="big">{stats.unavailableStaff}</div>
+              <div className="caption">Staff members unavailable</div>
+            </div>
+          </div>
+        </section>
 
-        </div>
+        <section>
+          <div className="resource-section-head">
+            <h2>Staff Availability</h2>
+            <p>Current availability of registered hospital staff.</p>
+          </div>
 
-      </section>
+          <div className="resource-people-list">
+            {staff.map((person) => (
+              <div className="resource-person-row" key={person.staff_id}>
+                <div className="resource-person-who">
+                  <strong>{person.staff_name}</strong>
+                  <span>{person.role}</span>
+                </div>
+                <div className="resource-person-where">{person.department}</div>
+                <span className={`resource-status-dot ${person.available ? "free" : "busy"}`}>
+                  {person.available ? "Available" : "Unavailable"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
 
+        <section>
+          <div className="resource-section-head">
+            <h2>Hospital Resources</h2>
+            <p>Current availability of counters and consultation rooms.</p>
+          </div>
 
-      {/* ANALYTICAL INSIGHT */}
+          <div className="resource-room-grid">
+            {resources.map((resource) => {
+              const capacity = Number(resource.capacity || 0);
+              const available = Number(resource.available || 0);
+              const utilization = capacity
+                ? ((capacity - available) / capacity) * 100
+                : 0;
 
-      <section className="resource-insight">
-
-        <div className="insight-icon">
-          i
-        </div>
-
-
-        <div>
-
-          <h2>
-            Resource Insight
-          </h2>
-
-
-          <p>
-
-            {mostUtilizedResource ? (
-              <>
-                <strong>
-                  {mostUtilizedResource.resource_type}
-                </strong>{" "}
-                in the{" "}
-                <strong>
-                  {mostUtilizedResource.department}
-                </strong>{" "}
-                department currently has the
-                highest resource utilization at{" "}
-                <strong>
-                  {(
-                    ((Number(
-                      mostUtilizedResource.capacity
-                    ) -
-                      Number(
-                        mostUtilizedResource.available
-                      )) /
-                      Number(
-                        mostUtilizedResource.capacity
-                      )) *
-                    100
-                  ).toFixed(1)}
-                  %
-                </strong>
-                . Staff availability and resource
-                capacity can be analyzed together
-                with patient-flow information to
-                understand conditions associated
-                with waiting and bottlenecks.
-              </>
-            ) : (
-              <>
-                Staff availability and resource
-                capacity can be analyzed together
-                with patient-flow information to
-                understand conditions associated
-                with waiting and bottlenecks.
-              </>
-            )}
-
-          </p>
-
-
-          {departmentsWithUnavailableStaff.length > 0 && (
-
-            <p>
-
-              Departments with currently unavailable
-              staff:{" "}
-
-              <strong>
-                {departmentsWithUnavailableStaff.join(
-                  ", "
-                )}
-              </strong>
-              .
-
-            </p>
-
-          )}
-
-        </div>
-
-      </section>
-
+              return (
+                <div className="resource-room-card" key={resource.resource_id}>
+                  <span className="dept">{resource.department}</span>
+                  <div className="name">{resource.resource_type}</div>
+                  <div className="count">
+                    <span className="n">{available}</span>
+                    <span className="label">of {capacity} available</span>
+                  </div>
+                  <div className="resource-card-label">Used: {capacity - available} of {capacity}</div>
+                  <div className="util-bar">
+                    <div
+                      className="util-fill"
+                      style={{ width: `${Math.min(100, Math.max(0, utilization))}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

@@ -3,119 +3,356 @@ import { API_URL } from "./config";
 import "./DoctorList.css";
 
 function DoctorList() {
-    const [doctors, setDoctors] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
 
-    const loadDoctors = async () => {
-        try {
-            setLoading(true);
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [updatingDoctor, setUpdatingDoctor] = useState(null);
 
-            const response = await fetch(`${API_URL}/api/doctors`);
+  const role =
+    localStorage.getItem("role") || "";
 
-            if (!response.ok) {
-                throw new Error("Failed to load doctors");
-            }
+  const username =
+    localStorage.getItem("username") || "";
 
-            const data = await response.json();
 
-            setDoctors(data);
-            setError("");
-        } catch (err) {
-            console.error(err);
-            setError("Unable to load doctor list.");
-        } finally {
-            setLoading(false);
+  const loadDoctors = async () => {
+
+    try {
+
+      setLoading(true);
+
+      const response = await fetch(
+        `${API_URL}/api/doctors`
+      );
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      const data = await response.json();
+
+      setDoctors(data);
+      setError("");
+
+    } catch {
+
+      setError(
+        "Unable to load doctor list."
+      );
+
+    } finally {
+
+      setLoading(false);
+
+    }
+  };
+
+
+  useEffect(() => {
+
+    loadDoctors();
+
+  }, []);
+
+
+  const updateDoctorStatus = async (
+    doctorId,
+    status
+  ) => {
+
+    try {
+
+      setUpdatingDoctor(doctorId);
+      setError("");
+
+      const response = await fetch(
+        `${API_URL}/api/doctors/${doctorId}/status`,
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            status,
+            username
+          })
         }
-    };
+      );
 
-    useEffect(() => {
-        loadDoctors();
-    }, []);
 
-    return (
-        <div className="doctor-list-page">
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
 
-            <div className="doctor-list-header">
-                <div>
-                    <h1>Doctor List</h1>
-                    <p>Doctors available in the hospital</p>
-                </div>
 
-                <button
-                    className="back-button"
-                    onClick={() => window.location.href = "/home"}
-                >
-                    ← Back to Home
-                </button>
-            </div>
+      if (!response.ok) {
 
-            <div className="doctor-summary">
-                <span>Total Doctors</span>
-                <strong>{doctors.length}</strong>
-            </div>
+        throw new Error(
+          data.message ||
+            "Unable to update doctor status."
+        );
 
-            {loading && (
-                <p className="doctor-message">
-                    Loading doctors...
-                </p>
-            )}
+      }
 
-            {error && (
-                <p className="doctor-error">
-                    {error}
-                </p>
-            )}
 
-            {!loading && !error && doctors.length === 0 && (
-                <div className="empty-doctors">
-                    <h3>No doctors found</h3>
-                    <p>Doctor information will appear here.</p>
-                </div>
-            )}
+      /*
+       * Reload the doctor list so the
+       * updated status is immediately visible.
+       */
+      await loadDoctors();
 
-            {!loading && doctors.length > 0 && (
-                <div className="doctor-table-container">
-                    <table className="doctor-table">
-                        <thead>
-                            <tr>
-                                <th>Doctor ID</th>
-                                <th>Doctor Name</th>
-                                <th>Specialization</th>
-                                <th>Department</th>
-                                <th>Room No.</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
+    } catch (error) {
 
-                        <tbody>
-                            {doctors.map((doctor) => (
-                                <tr key={doctor.doctor_id}>
-                                    <td>{doctor.doctor_id}</td>
-                                    <td>{doctor.doctor_name}</td>
-                                    <td>{doctor.specialization}</td>
-                                    <td>{doctor.department}</td>
-                                    <td>{doctor.room_no}</td>
-                                    <td>
-                                        <span
-                                            className={
-                                                doctor.status === "AVAILABLE"
-                                                    ? "doctor-status available"
-                                                    : "doctor-status busy"
-                                            }
-                                        >
-                                            {doctor.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+      setError(
+        error.message ||
+          "Unable to update doctor status."
+      );
+
+    } finally {
+
+      setUpdatingDoctor(null);
+
+    }
+  };
+
+
+  const initials = (name) =>
+    (name || "Doctor")
+      .replace(/^Dr\.\s*/i, "")
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((x) => x[0])
+      .join("")
+      .toUpperCase();
+
+
+  return (
+
+    <div className="doctor-page">
+
+      <main className="doctor-main">
+
+        <div className="doctor-top-row">
+
+          <div>
+
+            <h1>
+              Doctor List
+            </h1>
+
+            <p>
+              Doctors available in the hospital.
+            </p>
+
+          </div>
+
+
+          <button
+  className="doctor-home-btn"
+  onClick={() =>
+    (window.location.href =
+      "/home?view=operations")
+  }
+>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+
+  Back
+</button>
 
         </div>
-    );
+
+
+        <div className="doctor-stat">
+
+          <span>
+            Total doctors
+          </span>
+
+          <strong>
+            {doctors.length}
+          </strong>
+
+        </div>
+
+
+        {loading && (
+
+          <div className="doctor-empty">
+
+            Loading doctors...
+
+          </div>
+
+        )}
+
+
+        {error && (
+
+          <div className="doctor-empty doctor-error">
+
+            {error}
+
+          </div>
+
+        )}
+
+
+        {!loading &&
+          !error &&
+          !doctors.length && (
+
+            <div className="doctor-empty">
+
+              No doctors found.
+
+              <br />
+
+              Doctor information will appear here.
+
+            </div>
+
+          )}
+
+
+        {!loading &&
+          !error &&
+          doctors.length > 0 && (
+
+            <div className="doctor-list">
+
+              {doctors.map((d) => (
+
+                <div
+                  className="doctor-row"
+                  key={d.doctor_id}
+                >
+
+                  <div className="doctor-avatar">
+
+                    {initials(
+                      d.doctor_name
+                    )}
+
+                  </div>
+
+
+                  <div className="doctor-who">
+
+                    <div className="name">
+
+                      {d.doctor_name}
+
+                    </div>
+
+                    <div className="spec">
+
+                      {d.specialization}
+
+                    </div>
+
+                  </div>
+
+
+                  <span className="doctor-dept-tag">
+
+                    {d.department}
+
+                  </span>
+
+
+                  <div className="doctor-room">
+
+                    Room{" "}
+
+                    <strong>
+                      {d.room_no}
+                    </strong>
+
+                  </div>
+
+
+                  {role === "ADMIN" ? (
+
+                    <select
+                      className="doctor-status-select"
+                      value={
+                        d.status ||
+                        "UNAVAILABLE"
+                      }
+                      disabled={
+                        updatingDoctor ===
+                        d.doctor_id
+                      }
+                      onChange={(e) =>
+                        updateDoctorStatus(
+                          d.doctor_id,
+                          e.target.value
+                        )
+                      }
+                    >
+
+                      <option value="AVAILABLE">
+                        Available
+                      </option>
+
+                      <option value="BUSY">
+                        Busy
+                      </option>
+
+                      <option value="UNAVAILABLE">
+                        Unavailable
+                      </option>
+
+                    </select>
+
+                  ) : (
+
+                    <span
+                      className={`doctor-status-pill ${
+                        d.status ===
+                        "AVAILABLE"
+                          ? "available"
+                          : "busy"
+                      }`}
+                    >
+
+                      {d.status ===
+                      "AVAILABLE"
+                        ? "Available"
+                        : d.status ===
+                          "UNAVAILABLE"
+                        ? "Unavailable"
+                        : "Busy"}
+
+                    </span>
+
+                  )}
+
+                </div>
+
+              ))}
+
+            </div>
+
+          )}
+
+      </main>
+
+    </div>
+
+  );
 }
 
 export default DoctorList;
