@@ -1,45 +1,64 @@
-from flask import Flask, request, jsonify
+import os
 import joblib
 import pandas as pd
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
-# Load the complete trained ML pipeline
-model = joblib.load("hospital_wait_model.pkl")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "hospital_wait_model.pkl")
+
+model = joblib.load(MODEL_PATH)
 
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    try:
+        data = request.get_json()
 
-    data = request.get_json()
+        required_fields = [
+            "stage",
+            "patient_type",
+            "staff_available",
+            "staff_capacity",
+            "resource_capacity",
+            "resource_available",
+        ]
 
-    input_data = pd.DataFrame([{
-        "stage": data["stage"],
-        "patient_type": data["patient_type"],
-        "staff_available": data["staff_available"],
-        "staff_capacity": data["staff_capacity"],
-        "resource_capacity": data["resource_capacity"],
-        "resource_available": data["resource_available"]
-    }])
+        missing = [field for field in required_fields if field not in data]
+        if missing:
+            return jsonify({
+                "error": "Missing input fields",
+                "missing_fields": missing
+            }), 400
 
-    # The pipeline automatically performs preprocessing
-    # and then makes the prediction
-    prediction = int(model.predict(input_data)[0])
+        input_data = pd.DataFrame([{
+            "stage": data["stage"],
+            "patient_type": data["patient_type"],
+            "staff_available": float(data["staff_available"]),
+            "staff_capacity": float(data["staff_capacity"]),
+            "resource_capacity": float(data["resource_capacity"]),
+            "resource_available": float(data["resource_available"]),
+        }], columns=required_fields)
 
-    if prediction == 1:
-        condition = "HIGH WAITING CONDITION"
-    else:
-        condition = "NORMAL WAITING CONDITION"
+        prediction = int(model.predict(input_data)[0])
 
-    return jsonify({
-        "prediction": prediction,
-        "condition": condition
-    })
+        condition = (
+            "HIGH WAITING CONDITION"
+            if prediction == 1
+            else "NORMAL WAITING CONDITION"
+        )
+
+        return jsonify({
+            "prediction": prediction,
+            "condition": condition
+        })
+
+    except Exception as error:
+        return jsonify({"error": str(error)}), 500
 
 
 if __name__ == "__main__":
-    app.run(
-        host="0.0.0.0",
-        port=5000,
-        debug=False
-    )
+    app.run(host="0.0.0.0", port=5000, debug=False)

@@ -47,6 +47,8 @@ function DataMining() {
 
   const stagePatterns = data.stagePatterns || [];
   const arrivalPatterns = data.arrivalPatterns || [];
+  const apriori = data.apriori || { transactionCount: 0, minSupport: 0, minConfidence: 0, frequentItemsets: [], rules: [] };
+  const aprioriRules = apriori.rules || [];
 
   const maxWaiting =
     stagePatterns.length > 0
@@ -339,6 +341,55 @@ function DataMining() {
 
         </div>
 
+      </section>
+
+
+      {/* APRIORI ASSOCIATION RULE MINING */}
+      <section className="dm-apriori">
+        <div className="findings-heading">
+          <div>
+            <h2>Apriori Association Rules</h2>
+            <p>
+              Discovers workflow conditions that frequently occur together in the recorded data.
+            </p>
+          </div>
+          <div className="apriori-meta">
+            {apriori.transactionCount} events analyzed · min support {Number(apriori.minSupport * 100).toFixed(0)}% · min confidence {Number(apriori.minConfidence * 100).toFixed(0)}%
+          </div>
+        </div>
+
+        {aprioriRules.length > 0 ? (
+          <div className="apriori-table-wrap">
+            <table className="apriori-table">
+              <thead>
+                <tr>
+                  <th>If condition</th>
+                  <th>Then condition</th>
+                  <th>Support</th>
+                  <th>Confidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {aprioriRules.map((rule, index) => (
+                  <tr key={index}>
+                    <td>{rule.antecedent?.join(" + ")}</td>
+                    <td>{rule.consequent?.join(" + ")}</td>
+                    <td>{Number(rule.support).toFixed(2)}%</td>
+                    <td>{Number(rule.confidence).toFixed(2)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="apriori-empty">
+            No association rules met the current support and confidence thresholds.
+          </div>
+        )}
+
+        <div className="apriori-note">
+          <strong>How to read this:</strong> Apriori finds relationships in the recorded workflow data. It does not prove that one condition causes another.
+        </div>
       </section>
 
 

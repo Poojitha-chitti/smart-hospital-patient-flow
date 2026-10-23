@@ -1,22 +1,26 @@
 package com.hospital.smart_hospital.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "users")
 public class User {
 
     @Id
-@GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer user_id;
 
     private String username;
+
     private String password;
+
+    private String email;
+
     private String role;
+
+    private String work_area;
+
+    private Integer staff_id;
 
     public Integer getUser_id() {
         return user_id;
@@ -42,11 +46,35 @@ public class User {
         this.password = password;
     }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getRole() {
         return role;
     }
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getWork_area() {
+        return work_area;
+    }
+
+    public void setWork_area(String work_area) {
+        this.work_area = work_area;
+    }
+
+    public Integer getStaff_id() {
+        return staff_id;
+    }
+
+    public void setStaff_id(Integer staff_id) {
+        this.staff_id = staff_id;
     }
 }

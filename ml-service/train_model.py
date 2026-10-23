@@ -18,7 +18,18 @@ file_path = r"C:\Users\Dell\Downloads\smart-hospital\hospital_workflow_data.csv"
 df = pd.read_csv(file_path)
 
 print("Total workflow records:", len(df))
+print("\nRecords by stage:")
+print(df["stage"].value_counts())
 
+print("\nRecords by patient type:")
+print(df["patient_type"].value_counts())
+
+print("\nWaiting-time distribution:")
+print(df["waiting_time"].describe())
+
+print("\nHigh vs Normal waiting records:")
+print(df["high_wait"].value_counts() if "high_wait" in df.columns else
+      (df["waiting_time"] >= 20).value_counts())
 
 # ==========================================
 # 2. CREATE TARGET VARIABLE
@@ -28,7 +39,21 @@ print("Total workflow records:", len(df))
 # Waiting time < 20 minutes = Normal Waiting
 
 df["high_wait"] = (df["waiting_time"] >= 20).astype(int)
+print("\n=== HIGH WAITING PATTERNS ===")
 
+print("\nBy department:")
+print(
+    df.groupby("stage")["high_wait"]
+    .agg(["count", "sum", "mean"])
+    .assign(high_wait_percentage=lambda x: x["mean"] * 100)
+)
+
+print("\nBy department and patient type:")
+print(
+    df.groupby(["stage", "patient_type"])["high_wait"]
+    .agg(["count", "sum", "mean"])
+    .assign(high_wait_percentage=lambda x: x["mean"] * 100)
+)
 
 # ==========================================
 # 3. SELECT FEATURES
@@ -152,7 +177,7 @@ print(classification_report(y_test, y_pred))
 # 11. SAVE COMPLETE PIPELINE
 # ==========================================
 
-model_path = r"C:\Users\Dell\Downloads\smart-hospital\ml-service\hospital_wait_model.pkl"
+model_path = r"C:\Users\Dell\Downloads\smart-hospital-eabda-v1\smart-hospital\ml-service\hospital_wait_model.pkl" 
 
 joblib.dump(pipeline, model_path)
 

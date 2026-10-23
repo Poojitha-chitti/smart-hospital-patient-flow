@@ -3,77 +3,351 @@ import { API_URL } from "./config";
 import "./RoomList.css";
 
 function RoomList() {
+
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [updatingRoom, setUpdatingRoom] = useState(null);
+
+  const role =
+    localStorage.getItem("role") || "";
+
+  const username =
+    localStorage.getItem("username") || "";
+
+
+  const loadRooms = async () => {
+
+    try {
+
+      setLoading(true);
+
+      const response = await fetch(
+        `${API_URL}/api/rooms`
+      );
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      const data = await response.json();
+
+      setRooms(data);
+      setError("");
+
+    } catch {
+
+      setError(
+        "Unable to load room list."
+      );
+
+    } finally {
+
+      setLoading(false);
+
+    }
+  };
+
 
   useEffect(() => {
-    fetch(`${API_URL}/api/rooms`)
-      .then((response) => response.json())
-      .then((data) => {
-        setRooms(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching rooms:", error);
-        setLoading(false);
-      });
+
+    loadRooms();
+
   }, []);
 
+
+  const updateRoomStatus = async (
+    roomId,
+    status
+  ) => {
+
+    try {
+
+      setUpdatingRoom(roomId);
+      setError("");
+
+      const response = await fetch(
+        `${API_URL}/api/rooms/${roomId}/status`,
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body: JSON.stringify({
+            status,
+            username
+          })
+        }
+      );
+
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+
+      if (!response.ok) {
+
+        throw new Error(
+          data.message ||
+            "Unable to update room status."
+        );
+
+      }
+
+
+      await loadRooms();
+
+    } catch (error) {
+
+      setError(
+        error.message ||
+          "Unable to update room status."
+      );
+
+    } finally {
+
+      setUpdatingRoom(null);
+
+    }
+  };
+
+
+  const getStatusClass = (status) => {
+
+    if (status === "AVAILABLE") {
+      return "available";
+    }
+
+    if (status === "MAINTENANCE") {
+      return "maintenance";
+    }
+
+    return "occupied";
+  };
+
+
+  const getStatusText = (status) => {
+
+    if (status === "AVAILABLE") {
+      return "Available";
+    }
+
+    if (status === "MAINTENANCE") {
+      return "Maintenance";
+    }
+
+    return "Occupied";
+  };
+
+
   return (
-    <div className="room-list-page">
-        <button
-  className="back-home-button"
-  onClick={() => (window.location.href = "/home")}
+
+    <div className="room-page">
+
+      <main className="room-main">
+
+        <div className="room-top-row">
+
+          <div>
+
+            <h1>
+              Room List
+            </h1>
+
+            <p>
+              Rooms available in the hospital.
+            </p>
+
+          </div>
+
+
+          <button
+  className="room-home-btn"
+  onClick={() =>
+    (window.location.href =
+      "/home?view=operations")
+  }
 >
-  ← Back to Home
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+  >
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+
+  Back
 </button>
-      <div className="room-list-header">
-        <h2>Rooms</h2>
-        <p>View hospital consultation room information</p>
-      </div>
 
-      {loading ? (
-        <p>Loading rooms...</p>
-      ) : rooms.length === 0 ? (
-        <p>No rooms available.</p>
-      ) : (
-        <div className="room-table-container">
-          <table className="room-table">
-            <thead>
-              <tr>
-                <th>Room ID</th>
-                <th>Room No.</th>
-                <th>Department</th>
-                <th>Room Type</th>
-                <th>Status</th>
-              </tr>
-            </thead>
+        </div>
 
-            <tbody>
+
+        <div className="room-stat">
+
+          <span>
+            Total rooms
+          </span>
+
+          <strong>
+            {rooms.length}
+          </strong>
+
+        </div>
+
+
+        {loading && (
+
+          <div className="room-empty">
+
+            Loading rooms...
+
+          </div>
+
+        )}
+
+
+        {error && (
+
+          <div className="room-empty room-error">
+
+            {error}
+
+          </div>
+
+        )}
+
+
+        {!loading &&
+          !error &&
+          !rooms.length && (
+
+            <div className="room-empty">
+
+              No rooms found.
+
+              <br />
+
+              Room information will appear here.
+
+            </div>
+
+          )}
+
+
+        {!loading &&
+          !error &&
+          rooms.length > 0 && (
+
+            <div className="room-list">
+
               {rooms.map((room) => (
-                <tr key={room.room_id}>
-                  <td>{room.room_id}</td>
-                  <td>{room.room_no}</td>
-                  <td>{room.department}</td>
-                  <td>{room.room_type}</td>
-                  <td>
-                    <span
-                      className={
-                        room.status === "AVAILABLE"
-                          ? "room-status available"
-                          : "room-status busy"
+
+                <div
+                  className="room-row"
+                  key={room.room_id}
+                >
+
+                  <div className="room-number">
+
+                    <strong>
+                      {room.room_no}
+                    </strong>
+
+                  </div>
+
+
+                  <div className="room-info">
+
+                    <div className="name">
+
+                      {room.room_type}
+
+                    </div>
+
+                    <div className="spec">
+
+                      {room.department}
+
+                    </div>
+
+                  </div>
+
+
+                  <span className="room-dept-tag">
+
+                    {room.department}
+
+                  </span>
+
+
+                  {role === "ADMIN" ? (
+
+                    <select
+                      className="room-status-select"
+                      value={
+                        room.status ||
+                        "AVAILABLE"
+                      }
+                      disabled={
+                        updatingRoom ===
+                        room.room_id
+                      }
+                      onChange={(e) =>
+                        updateRoomStatus(
+                          room.room_id,
+                          e.target.value
+                        )
                       }
                     >
-                      {room.status}
+
+                      <option value="AVAILABLE">
+                        Available
+                      </option>
+
+                      <option value="OCCUPIED">
+                        Occupied
+                      </option>
+
+                      <option value="MAINTENANCE">
+                        Maintenance
+                      </option>
+
+                    </select>
+
+                  ) : (
+
+                    <span
+                      className={`room-status-pill ${getStatusClass(
+                        room.status
+                      )}`}
+                    >
+
+                      {getStatusText(
+                        room.status
+                      )}
+
                     </span>
-                  </td>
-                </tr>
+
+                  )}
+
+                </div>
+
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+
+            </div>
+
+          )}
+
+      </main>
+
     </div>
+
   );
 }
 

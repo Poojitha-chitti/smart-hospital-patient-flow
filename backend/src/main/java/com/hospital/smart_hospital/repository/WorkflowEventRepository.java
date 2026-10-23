@@ -11,16 +11,19 @@ import java.util.List;
 
 public interface WorkflowEventRepository extends JpaRepository<WorkflowEvent, Integer> {
 
-    @Query("""
-        SELECT
-            w.stage AS stage,
-            AVG(TIMESTAMPDIFF(MINUTE, w.queue_entry_time, w.service_start_time)) AS averageWaitingTime,
-            AVG(TIMESTAMPDIFF(MINUTE, w.service_start_time, w.service_end_time)) AS averageServiceTime
-        FROM WorkflowEvent w
-        GROUP BY w.stage
-        ORDER BY averageWaitingTime DESC
-        """)
-    List<BottleneckProjection> findBottleneckAnalysis();
+   @Query("""
+    SELECT
+        w.stage AS stage,
+        AVG(TIMESTAMPDIFF(MINUTE, w.queue_entry_time, w.service_start_time)) AS averageWaitingTime,
+        AVG(TIMESTAMPDIFF(MINUTE, w.service_start_time, w.service_end_time)) AS averageServiceTime
+    FROM WorkflowEvent w
+    WHERE w.stage <> 'REGISTRATION'
+      AND w.queue_entry_time IS NOT NULL
+      AND w.service_start_time IS NOT NULL
+    GROUP BY w.stage
+    ORDER BY averageWaitingTime DESC
+    """)
+List<BottleneckProjection> findBottleneckAnalysis();
 
     @Query("""
         SELECT w.stage,
@@ -58,6 +61,18 @@ public interface WorkflowEventRepository extends JpaRepository<WorkflowEvent, In
         ORDER BY w.event_id ASC
         """)
     List<WorkflowEvent> findFirstWorkflowEvents(Pageable pageable);
+
+    @Query("""
+        SELECT w.stage, v.patient_type,
+               TIMESTAMPDIFF(MINUTE, w.queue_entry_time, w.service_start_time),
+               HOUR(v.arrival_time)
+        FROM WorkflowEvent w
+        JOIN Visit v ON v.visit_id = w.visit_id
+        WHERE w.queue_entry_time IS NOT NULL
+          AND w.service_start_time IS NOT NULL
+        ORDER BY w.event_id ASC
+        """)
+    List<Object[]> findAprioriTransactions();
 
     @Query("SELECT COUNT(w) FROM WorkflowEvent w")
     long countTotalWorkflowEvents();

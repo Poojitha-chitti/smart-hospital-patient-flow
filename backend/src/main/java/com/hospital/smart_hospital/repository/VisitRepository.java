@@ -3,6 +3,7 @@ package com.hospital.smart_hospital.repository;
 import com.hospital.smart_hospital.model.Visit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface VisitRepository extends JpaRepository<Visit, Integer> {
 
@@ -11,4 +12,7 @@ public interface VisitRepository extends JpaRepository<Visit, Integer> {
 
     @Query("SELECT COALESCE(MAX(v.visit_id), 0) FROM Visit v")
     int findMaxVisitId();
+
+    @Query("SELECT COUNT(v) FROM Visit v WHERE UPPER(v.patient_type) = UPPER(:patientType)")
+    long countByPatientTypeIgnoreCase(@Param("patientType") String patientType);
 }
