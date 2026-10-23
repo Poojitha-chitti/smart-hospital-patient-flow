@@ -1,0 +1,6 @@
+stage,total_events,actual_high_wait,predicted_high_wait,false_alarms,detected_high_wait,actual_normal_wait,false_alarm_rate_percent
+DIAGNOSTICS,955,0,0,0,0,955,0.0
+EMERGENCY_TREATMENT,230,0,0,0,0,230,0.0
+OP,1868,665,1737,1072,665,1203,89.11
+PHARMACY,2012,0,0,0,0,2012,0.0
+TRIAGE,230,0,0,0,0,230,0.0
