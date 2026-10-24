@@ -166,7 +166,7 @@ public void sendResearchBottleneckAlert(
         if (stage == null || stage.isBlank()) {
             return;
         }
-
+        
         alertedStages.remove(normalizeStage(stage));
     }
 

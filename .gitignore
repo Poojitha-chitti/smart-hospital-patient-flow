@@ -25,3 +25,15 @@ __pycache__/
 *-test.json
 spark_error.txt
 hospital_db_backup.sql
+
+# Local backup copies and archives
+backend.zip
+frontend-backup/
+frontend-backup-before-ui/
+original-apriori-backup/
+DataMiningController-old.java
+# Java crash logs
+hs_err_pid*.log
+
+dataset_generator_new/research_data_backup/des_visits.csv
+dataset_generator_new/research_data_backup/des_workflow_events.csv

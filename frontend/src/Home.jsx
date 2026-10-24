@@ -149,24 +149,33 @@ const [view, setView] = useState(initialView);
     }
 
     if (workArea === "DIAGNOSTICS") {
-      return [
-        ["Patient List", "/patient-list"],
-        ["Waiting List", "/waiting-list"],
-      ];
-    }
+  return [
+    ["Patient List", "/patient-list"],
+    ["Waiting List", "/waiting-list"],
+  ];
+}
 
-    return [];
+if (workArea === "EMERGENCY") {
+  return [
+    ["Register Patient", "/patient-registration"],
+    ["Patient List", "/patient-list"],
+    ["Waiting List", "/waiting-list"],
+  ];
+}
+
+return [];
   };
 
   const patientOptions =
     getPatientOptions();
 
   const canAccessPatients =
-    role === "ADMIN" ||
-    workArea === "REGISTRATION" ||
-    workArea === "OP" ||
-    workArea === "PHARMACY" ||
-    workArea === "DIAGNOSTICS";
+  role === "ADMIN" ||
+  workArea === "REGISTRATION" ||
+  workArea === "OP" ||
+  workArea === "PHARMACY" ||
+  workArea === "DIAGNOSTICS" ||
+  workArea === "EMERGENCY";
 
   const canAccessOperations =
     role === "ADMIN";

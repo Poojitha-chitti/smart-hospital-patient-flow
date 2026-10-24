@@ -4,6 +4,8 @@ import { API_URL } from "./config";
 
 function Dashboard() {
   const [bottlenecks, setBottlenecks] = useState([]);
+  const [historicalEabda, setHistoricalEabda] = useState(null);
+  const [historicalBottlenecks, setHistoricalBottlenecks] = useState([]);
   const [visitCount, setVisitCount] = useState(0);
   const [patients, setPatients] = useState([]);
   const [dataMining, setDataMining] = useState(null);
@@ -28,6 +30,8 @@ function Dashboard() {
     const interval = setInterval(() => {
       loadPatientFlow();
       loadBottleneckAnalysis();
+      loadHistoricalEabda();
+      loadHistoricalBottleneckAnalysis();
       loadDataMining();
     }, 10000);
 
@@ -35,34 +39,103 @@ function Dashboard() {
   }, []);
 
   const loadDashboardData = () => {
-    fetch(`${API_URL}/api/visits/count`)
-      .then((response) => response.json())
-      .then((data) => setVisitCount(data))
+    fetch(`${API_URL}/api/research/summary`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to load research summary");
+        }
+        return response.json();
+      })
+      .then((data) => setVisitCount(Number(data.totalVisits ?? 0)))
       .catch((error) =>
-        console.error("Visit count error:", error)
+        console.error("Research summary error:", error)
       );
 
     loadBottleneckAnalysis();
+    loadHistoricalEabda();
+    loadHistoricalBottleneckAnalysis();
     loadMLInput();
     loadPatientFlow();
     loadDataMining();
   };
 
   const loadBottleneckAnalysis = () => {
-    fetch(`${API_URL}/api/bottleneck-analysis`)
-      .then((response) => {
+  fetch(`${API_URL}/api/research/bottleneck-analysis`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to load research bottleneck analysis");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      const researchData = data.map((item) => ({
+        stage: item.stage,
+        averageWaitingTime: Number(item.average_waiting_minutes ?? 0),
+        averageServiceTime: Number(item.average_service_minutes ?? 0),
+        severity:
+  Number(item.total_cases ?? 0) > 0 &&
+  (Number(item.high_wait_cases ?? 0) / Number(item.total_cases)) >= 0.10
+    ? "HIGH"
+    : "NORMAL",
+        totalCases: Number(item.total_cases ?? 0),
+        highWaitCases: Number(item.high_wait_cases ?? 0),
+      }));
+
+      setBottlenecks(researchData);
+    })
+    .catch((error) => {
+      console.error("Research bottleneck error:", error);
+    });
+};
+const loadHistoricalBottleneckAnalysis = () => {
+  fetch(`${API_URL}/api/research/bottleneck-analysis`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to load historical bottleneck analysis");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      setHistoricalBottlenecks(Array.isArray(data) ? data : []);
+    })
+    .catch((error) => {
+      console.error("Historical bottleneck error:", error);
+    });
+};
+const loadHistoricalEabda = async () => {
+  const stages = [
+    "OP",
+    "DIAGNOSTICS",
+    "EMERGENCY_TREATMENT",
+    "PHARMACY",
+    "TRIAGE",
+  ];
+
+  try {
+    const results = await Promise.all(
+      stages.map(async (stage) => {
+        const response = await fetch(
+          `${API_URL}/api/research/eabda?stage=${encodeURIComponent(stage)}`
+        );
+
         if (!response.ok) {
-          throw new Error("Failed to load bottleneck analysis");
+          throw new Error(`Failed to load EABDA for ${stage}`);
         }
+
         return response.json();
       })
-      .then((data) => setBottlenecks(data))
-      .catch((error) =>
-        console.error("Bottleneck error:", error)
-      );
-  };
+    );
 
-  /* =====================================================
+    const resultsByStage = Object.fromEntries(
+      results.map((result) => [result.stage, result])
+    );
+
+    setHistoricalEabda(resultsByStage);
+  } catch (error) {
+    console.error("Historical EABDA error:", error);
+  }
+};
+/* =====================================================
      ML INPUT
   ===================================================== */
 
@@ -488,76 +561,77 @@ function Dashboard() {
         </section>
         {/* SMART BOTTLENECK ALERT */}
 
-        <section className="summary-banner bottleneck-alert">
-          <div className="alert-top">
-            <div>
-              <span className="alert-label">
-                SMART BOTTLENECK ALERT
-              </span>
+<section className="summary-banner bottleneck-alert">
+  <div className="alert-top">
+    <div>
+      <span className="alert-label">
+        SMART BOTTLENECK ALERT
+      </span>
 
-              <strong>
-                {highestBottleneck
-                  ? `${highestBottleneck.stage} requires attention`
-                  : "Waiting for workflow analysis"}
-              </strong>
-            </div>
+      <strong>
+        {highestBottleneck
+          ? `${highestBottleneck.stage} requires attention`
+          : "Waiting for workflow analysis"}
+      </strong>
+    </div>
 
-            {highestBottleneck && (
-              <span
-                className={`alert-severity ${String(
-                  highestBottleneck.severity || ""
-                ).toLowerCase()}`}
-              >
-                {highestBottleneck.severity || "MONITOR"}
-              </span>
-            )}
-          </div>
+    {highestBottleneck && (
+      <span
+        className={`alert-severity ${String(
+          highestBottleneck.severity || ""
+        ).toLowerCase()}`}
+      >
+        {highestBottleneck.severity || "MONITOR"}
+      </span>
+    )}
+  </div>
 
-          <p>
-            {highestBottleneck
-              ? `${highestBottleneck.stage} currently has the highest average waiting time among the analyzed stages.`
-              : "Waiting for the latest hospital workflow analysis."}
-          </p>
+  <p>
+    {highestBottleneck
+      ? `${highestBottleneck.stage} currently has the highest average waiting time among the analyzed stages.`
+      : "Waiting for the latest hospital workflow analysis."}
+  </p>
 
-          {highestBottleneck && (
-            <div className="alert-details">
-              <div>
-                <span>Average Waiting</span>
-                <strong>
-                  {Number(
-                    highestBottleneck.averageWaitingTime || 0
-                  ).toFixed(2)}{" "}
-                  min
-                </strong>
-              </div>
+  {highestBottleneck && (
+    <div className="alert-details">
+      <div>
+        <span>Average Waiting</span>
+        <strong>
+          {Number(
+            highestBottleneck.averageWaitingTime || 0
+          ).toFixed(2)}{" "}
+          min
+        </strong>
+      </div>
 
-              <div>
-                <span>Average Service</span>
-                <strong>
-                  {Number(
-                    highestBottleneck.averageServiceTime || 0
-                  ).toFixed(2)}{" "}
-                  min
-                </strong>
-              </div>
+      <div>
+        <span>Average Service</span>
+        <strong>
+          {Number(
+            highestBottleneck.averageServiceTime || 0
+          ).toFixed(2)}{" "}
+          min
+        </strong>
+      </div>
 
-              <div>
-                <span>EABDA State</span>
-                <strong>
-                  {String(
-                    highestBottleneck.eabdaState || "NORMAL"
-                  ).toUpperCase()}
-                </strong>
-              </div>
-            </div>
-          )}
+      <div>
+        <span>EABDA State</span>
+        <strong>
+          {String(
+            historicalEabda?.[String(highestBottleneck.stage).toUpperCase()]?.state ??
+            highestBottleneck.eabdaState ??
+            "NORMAL"
+          ).toUpperCase()}
+        </strong>
+      </div>
+    </div>
+  )}
 
-          <div className="alert-recommendation">
-            <span>System Recommendation</span>
-            <p>{getBottleneckRecommendation()}</p>
-          </div>
-        </section>
-
+  <div className="alert-recommendation">
+    <span>System Recommendation</span>
+    <p>{getBottleneckRecommendation()}</p>
+  </div>
+</section>
         {/* SUMMARY CARDS */}
 
         <section className="cards">
@@ -623,60 +697,115 @@ function Dashboard() {
               </thead>
 
               <tbody>
-                {bottlenecks.length > 0 ? (
-                  bottlenecks.map((item) => {
-                    const state = String(
-                      item.eabdaState || "NORMAL"
-                    ).toUpperCase();
+  {bottlenecks.length > 0 ? (
+    bottlenecks.map((item) => {
+      const historical =
+  historicalEabda?.[String(item.stage).toUpperCase()] ?? null;
 
-                    return (
-                      <tr key={item.stage}>
-                        <td className="stage-name">
-                          {item.stage}
-                        </td>
+      const state = String(
+  historical?.state ?? item.eabdaState ?? "NORMAL"
+).toUpperCase();
 
-                        <td>
-                          {Number(
-                            item.averageWaitingTime || 0
-                          ).toFixed(2)}{" "}
-                          min
-                        </td>
+const trend =
+  historical &&
+  historical.latestAverageMinutes != null &&
+  historical.baselineAverageMinutes != null
+    ? Number(historical.latestAverageMinutes) -
+      Number(historical.baselineAverageMinutes)
+    : Number(item.trend ?? 0);
 
-                        <td>
-                          {Number(
-                            item.averageServiceTime || 0
-                          ).toFixed(2)}{" "}
-                          min
-                        </td>
+      return (
+        <tr key={item.stage}>
+          <td className="stage-name">{item.stage}</td>
 
-                        <td>
-                          <span
-                            className={`severity-pill ${String(
-                              item.severity || ""
-                            ).toLowerCase()}`}
-                          >
-                            {item.severity || "—"}
-                          </span>
-                        </td>
+          <td>
+            {Number(item.averageWaitingTime ?? 0).toFixed(2)} min
+          </td>
 
-                        <td>
-                          <span
-                            className={`eabda-pill eabda-${state.toLowerCase()}`}
-                          >
-                            {state}
-                          </span>
-                        </td>
+          <td>
+            {Number(item.averageServiceTime ?? 0).toFixed(2)} min
+          </td>
 
-                        <td>
-                          {Number(item.trend ?? 0).toFixed(2)} min
-                        </td>
-                      </tr>
-                    );
-                  })
+          <td>
+            <span
+              className={`severity-pill ${String(
+                item.severity ?? ""
+              ).toLowerCase()}`}
+            >
+              {item.severity ?? "—"}
+            </span>
+          </td>
+
+          <td>
+            <span className={`eabda-pill eabda-${state.toLowerCase()}`}>
+              {state}
+            </span>
+          </td>
+
+          <td>{trend.toFixed(2)} min</td>
+        </tr>
+      );
+    })
+  ) : (
+    <tr>
+      <td colSpan="6" style={{ textAlign: "center" }}>
+        Waiting for bottleneck analysis...
+      </td>
+    </tr>
+  )}
+</tbody>
+            </table>
+          </div>
+        </section>
+
+{/* HISTORICAL BOTTLENECK ANALYSIS */}
+
+        <section className="analysis-section">
+          <div className="section-header">
+            <div>
+              <h2>Historical Bottleneck Analysis</h2>
+              <p>
+                Analysis based on historical hospital workflow records
+                from the research database.
+              </p>
+            </div>
+          </div>
+
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Stage</th>
+                  <th>Total Cases</th>
+                  <th>Average Wait (min)</th>
+                  <th>Average Service (min)</th>
+                  <th>High-Wait Cases</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {historicalBottlenecks.length > 0 ? (
+                  historicalBottlenecks.map((item) => (
+                    <tr key={item.stage}>
+                      <td className="stage-name">{item.stage}</td>
+                      <td>{item.total_cases}</td>
+                      <td>
+                        {Number(
+                          item.average_waiting_minutes ?? 0
+                        ).toFixed(2)}
+                      </td>
+                      <td>
+                        {Number(
+                          item.average_service_minutes ?? 0
+                        ).toFixed(2)}
+                      </td>
+                      <td>{item.high_wait_cases}</td>
+                    </tr>
+                  ))
                 ) : (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: "center" }}>
-                      Waiting for bottleneck analysis...
+                    <td colSpan="5" style={{ textAlign: "center" }}>
+                      Waiting for historical analysis...
                     </td>
                   </tr>
                 )}
@@ -684,7 +813,71 @@ function Dashboard() {
             </table>
           </div>
         </section>
+        {/* HISTORICAL EABDA DIAGNOSIS */}
+<section className="analysis-section">
+  <div className="section-header">
+    <div>
+      <h2>Historical EABDA Diagnosis</h2>
+      <p>
+        Historical waiting-time analysis for the selected hospital stage.
+      </p>
+    </div>
+  </div>
 
+  {historicalEabda?.OP ? (
+    <div className="table-container">
+      <table>
+        <tbody>
+          <tr>
+            <th>Stage</th>
+            <td>{historicalEabda.OP.stage}</td>
+          </tr>
+          <tr>
+            <th>Diagnosis</th>
+            <td>{historicalEabda.OP.state}</td>
+          </tr>
+          <tr>
+            <th>Historical Baseline</th>
+            <td>
+              {Number(
+                historicalEabda.OP.baselineAverageMinutes ?? 0
+              ).toFixed(2)}{" "}
+              min
+            </td>
+          </tr>
+          <tr>
+            <th>Latest Average Wait</th>
+            <td>
+              {Number(
+                historicalEabda.OP.latestAverageMinutes ?? 0
+              ).toFixed(2)}{" "}
+              min
+            </td>
+          </tr>
+          <tr>
+            <th>Pressure Ratio</th>
+            <td>
+              {historicalEabda.OP.pressureRatio == null ||
+              Number(historicalEabda.OP.pressureRatio) < 0
+                ? "Unavailable"
+                : Number(historicalEabda.OP.pressureRatio).toFixed(2)}
+            </td>
+          </tr>
+          <tr>
+            <th>Days Analyzed</th>
+            <td>{historicalEabda.OP.daysAnalyzed ?? "—"}</td>
+          </tr>
+          <tr>
+            <th>Evidence</th>
+            <td>{historicalEabda.OP.evidence ?? "—"}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <p>Loading historical EABDA diagnosis...</p>
+  )}
+</section>
         {/* DATA MINING INSIGHTS */}
 
         <section className="insights-section">
@@ -876,59 +1069,59 @@ function Dashboard() {
 
         {/* DECISION SUPPORT */}
 
-        <section className="decision-section">
-          <div className="section-header">
-            <h2>Decision Support</h2>
-            <p>
-              Operational information generated from workflow analysis.
-            </p>
-          </div>
+<section className="decision-section">
+  <div className="section-header">
+    <h2>Decision Support</h2>
+    <p>
+      Operational information generated from workflow analysis.
+    </p>
+  </div>  <div className="decision-card">
+    <div className="decision-main">
+      <div className="decision-icon">!</div>
+      <div>
+        <span className="decision-label">
+          OBSERVED BOTTLENECK
+        </span>
+        <h3>
+          {highestBottleneck
+            ? highestBottleneck.stage
+            : "—"}
+        </h3>
+      </div>
+    </div><div className="decision-details">
+  <div>
+    <span>Severity</span>
+    <strong>
+      {highestBottleneck?.severity || "—"}
+    </strong>
+  </div>
 
-          <div className="decision-card">
-            <div className="decision-main">
-              <div className="decision-icon">!</div>
-              <div>
-                <span className="decision-label">
-                  OBSERVED BOTTLENECK
-                </span>
-                <h3>
-                  {highestBottleneck
-                    ? highestBottleneck.stage
-                    : "—"}
-                </h3>
-              </div>
-            </div>
+  <div>
+    <span>EABDA State</span>
+    <strong>
+      {String(
+        historicalEabda?.[
+          String(highestBottleneck?.stage || "").toUpperCase()
+        ]?.state ??
+        highestBottleneck?.eabdaState ??
+        "NORMAL"
+      ).toUpperCase()}
+    </strong>
+  </div>
 
-            <div className="decision-details">
-              <div>
-                <span>Severity</span>
-                <strong>
-                  {highestBottleneck?.severity || "—"}
-                </strong>
-              </div>
+  <div>
+    <span>ML Condition</span>
+    <strong>{mlCondition || "Not predicted"}</strong>
+  </div>
+</div>
 
-              <div>
-                <span>EABDA State</span>
-                <strong>
-                  {String(
-                    highestBottleneck?.eabdaState || "NORMAL"
-                  ).toUpperCase()}
-                </strong>
-              </div>
+<div className="decision-recommendation">
+  <span>Recommended Action</span>
+  <p>{getBottleneckRecommendation()}</p>
+</div>
 
-              <div>
-                <span>ML Condition</span>
-                <strong>{mlCondition || "Not predicted"}</strong>
-              </div>
-            </div>
-
-            <div className="decision-recommendation">
-              <span>Recommended Action</span>
-              <p>{getBottleneckRecommendation()}</p>
-            </div>
-          </div>
-        </section>
-
+  </div>
+</section>
         {/* FINAL SYSTEM SUMMARY */}
 
         <section className="final-summary">

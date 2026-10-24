@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
+
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/api/ml")
@@ -37,72 +39,91 @@ public class MLPredictionController {
     public MLPredictionResponse predict(
             @RequestBody MLPredictionRequest request) {
 
+        if (request.getStage() == null
+                || request.getStage().trim().isEmpty()
+                || request.getPatient_type() == null
+                || request.getPatient_type().trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Stage and patient type are required.");
+        }
+
+        // The Python model requires only these two inputs.
+        MLPredictionInput input = new MLPredictionInput(
+                request.getStage().trim().toUpperCase(),
+                request.getPatient_type().trim().toUpperCase()
+        );
+
         return restClient.post()
                 .uri("/predict")
-                .body(request)
+                .body(input)
                 .retrieve()
                 .body(MLPredictionResponse.class);
     }
 
     @GetMapping("/current-input")
-public MLPredictionRequest getCurrentInput(
-        @RequestParam(defaultValue = "OP") String stage,
-        @RequestParam(defaultValue = "NORMAL") String patientType) {
+    public MLPredictionRequest getCurrentInput(
+            @RequestParam(defaultValue = "OP") String stage,
+            @RequestParam(defaultValue = "NORMAL") String patientType) {
 
-    String department;
+        stage = stage.trim().toUpperCase();
 
-    switch (stage.toUpperCase()) {
-        case "REGISTRATION":
-            department = "Registration";
-            break;
-        case "DIAGNOSTICS":
-            department = "Diagnostics";
-            break;
-        case "PHARMACY":
-            department = "Pharmacy";
-            break;
-        case "OP":
-        default:
-            department = "OP";
-            stage = "OP";
-            break;
+        String department;
+
+        switch (stage) {
+            case "REGISTRATION":
+                department = "Registration";
+                break;
+            case "DIAGNOSTICS":
+                department = "Diagnostics";
+                break;
+            case "PHARMACY":
+                department = "Pharmacy";
+                break;
+            case "OP":
+                department = "OP";
+                break;
+            default:
+                throw new IllegalArgumentException(
+                        "Unsupported hospital stage: " + stage);
+        }
+
+        List<Staff> staffMembers =
+                staffRepository.findByDepartmentIgnoreCase(department);
+
+        int staffAvailable = (int) staffMembers.stream()
+                .filter(s -> Boolean.TRUE.equals(s.getAvailable()))
+                .count();
+
+        int staffCapacity = staffMembers.stream()
+                .mapToInt(s -> s.getCapacity() == null
+                        ? 0 : s.getCapacity())
+                .sum();
+
+        List<Resource> resources =
+                resourceRepository.findByDepartmentIgnoreCase(department);
+
+        int resourceAvailable = resources.stream()
+                .mapToInt(r -> r.getAvailable() == null
+                        ? 0 : r.getAvailable())
+                .sum();
+
+        int resourceCapacity = resources.stream()
+                .mapToInt(r -> r.getCapacity() == null
+                        ? 0 : r.getCapacity())
+                .sum();
+
+        MLPredictionRequest request = new MLPredictionRequest();
+
+        request.setStage(stage);
+        request.setPatient_type(patientType.trim().toUpperCase());
+        request.setStaff_available(staffAvailable);
+        request.setStaff_capacity(staffCapacity);
+        request.setResource_available(resourceAvailable);
+        request.setResource_capacity(resourceCapacity);
+
+        return request;
     }
 
-    // Get all staff for this department
-    java.util.List<Staff> staffMembers =
-            staffRepository.findByDepartmentIgnoreCase(department);
-
-    int staffAvailable = (int) staffMembers.stream()
-            .filter(s -> Boolean.TRUE.equals(s.getAvailable()))
-            .count();
-
-    int staffCapacity = staffMembers.stream()
-            .mapToInt(s -> s.getCapacity() == null ? 0 : s.getCapacity())
-            .sum();
-
-    // Get all resources for this department
-    java.util.List<Resource> resources =
-            resourceRepository.findByDepartmentIgnoreCase(department);
-
-    int resourceAvailable = resources.stream()
-            .mapToInt(r -> r.getAvailable() == null ? 0 : r.getAvailable())
-            .sum();
-
-    int resourceCapacity = resources.stream()
-            .mapToInt(r -> r.getCapacity() == null ? 0 : r.getCapacity())
-            .sum();
-
-    MLPredictionRequest request = new MLPredictionRequest();
-
-    request.setStage(stage.toUpperCase());
-    request.setPatient_type(patientType.toUpperCase());
-    request.setStaff_available(staffAvailable);
-    request.setStaff_capacity(staffCapacity);
-    request.setResource_available(resourceAvailable);
-    request.setResource_capacity(resourceCapacity);
-
-    return request;
-}
     @GetMapping("/predict-current")
     public MLPredictionResponse predictCurrent(
             @RequestParam(defaultValue = "OP") String stage,
@@ -111,10 +132,11 @@ public MLPredictionRequest getCurrentInput(
         MLPredictionRequest request =
                 getCurrentInput(stage, patientType);
 
-        return restClient.post()
-                .uri("/predict")
-                .body(request)
-                .retrieve()
-                .body(MLPredictionResponse.class);
+        return predict(request);
+    }
+
+    public record MLPredictionInput(
+            String stage,
+            String patient_type) {
     }
 }
