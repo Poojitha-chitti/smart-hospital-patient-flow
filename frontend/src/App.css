@@ -1,0 +1,191 @@
+* { box-sizing: border-box; }
+
+.login-page {
+  min-height: 100vh;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f6f5f0;
+  color: #122421;
+  font-family: Inter, Arial, sans-serif;
+}
+
+.login-frame {
+  width: 100%;
+  max-width: 920px;
+  min-height: 600px;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 30px 60px -25px rgba(18, 36, 33, .35);
+}
+
+.login-brand {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 42px 42px 34px;
+  color: #fff;
+  background: linear-gradient(165deg, #123832 0%, #0d2b26 100%);
+}
+
+.login-brand-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  z-index: 2;
+}
+
+.brand-cross {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  color: #123832;
+  background: #c7dbcf;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.hospital-visual {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 8px 8px;
+}
+
+.hospital-visual img {
+  width: 100%;
+  max-width: 390px;
+  height: auto;
+  display: block;
+}
+
+.login-panel {
+  padding: 72px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #fff;
+}
+
+.login-panel h1 {
+  margin: 0 0 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 34px;
+  line-height: 1.15;
+  font-weight: 500;
+  color: #122421;
+  letter-spacing: -.02em;
+}
+
+.login-subtitle {
+  margin: 0 0 30px;
+  color: #65716d;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.login-panel form { display: flex; flex-direction: column; }
+
+.login-panel label {
+  margin: 0 0 7px;
+  color: #243530;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.login-panel input {
+  width: 100%;
+  height: 48px;
+  margin: 0 0 18px;
+  padding: 0 14px;
+  border: 1px solid #d8ded9;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #122421;
+  font: inherit;
+  font-size: 14px;
+}
+
+.login-panel input:focus {
+  border-color: #7fa895;
+  box-shadow: 0 0 0 3px rgba(127, 168, 149, .16);
+}
+
+.login-links {
+  display: flex;
+  justify-content: flex-end;
+  margin: -5px 0 16px;
+}
+
+.text-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #123832;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.text-link:hover { text-decoration: underline; }
+
+.login-submit {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  background: #123832;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-submit:hover { background: #0d2b26; }
+
+.login-message {
+  margin-top: 16px;
+  padding: 11px 12px;
+  border-radius: 8px;
+  background: #edf4f0;
+  color: #123832;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.login-switch {
+  margin: 22px 0 0;
+  color: #65716d;
+  font-size: 13px;
+  text-align: center;
+}
+
+.switch-link { margin-left: 5px; }
+
+@media (max-width: 760px) {
+  .login-page { padding: 16px; align-items: stretch; }
+  .login-frame { min-height: 0; grid-template-columns: 1fr; margin: auto 0; }
+  .login-brand { min-height: 210px; padding: 24px 24px 18px; }
+  .hospital-visual { padding: 8px 0 0; }
+  .hospital-visual img { max-width: 245px; max-height: 145px; }
+  .login-panel { padding: 34px 24px 30px; }
+  .login-panel h1 { font-size: 30px; }
+}

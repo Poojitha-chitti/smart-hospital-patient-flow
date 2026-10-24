@@ -1,0 +1,6 @@
+stage,total_events,average_wait_minutes,median_wait_minutes,maximum_wait_minutes,average_service_minutes,high_wait_cases,high_wait_percentage
+DIAGNOSTICS,4675,0.6,0.0,23.01,11.99,2,0.04
+EMERGENCY_TREATMENT,1012,0.36,0.0,25.22,22.63,1,0.1
+OP,9020,19.29,11.2,155.01,14.68,3164,35.08
+PHARMACY,9678,0.03,0.0,7.6,7.01,0,0.0
+TRIAGE,1012,0.0,0.0,0.46,5.87,0,0.0
