@@ -99,11 +99,12 @@ function ResourceAnalysis() {
   }, [staff, resources]);
 
   const workAreaLabel = (area) => {
-  if (area === "REGISTRATION") return "Registration";
-  if (area === "OP") return "OP Consultation";
-  if (area === "PHARMACY") return "Pharmacy";
-  if (area === "DIAGNOSTICS") return "Diagnostics";
-  return "Select work area";
+if (area === "REGISTRATION") return "Registration";
+if (area === "OP") return "OP Consultation";
+if (area === "PHARMACY") return "Pharmacy";
+if (area === "DIAGNOSTICS") return "Diagnostics";
+if (area === "EMERGENCY") return "Emergency";
+return "Select work area";
 };
 
   const staffOptionsForArea = (area) => {
@@ -289,6 +290,7 @@ function ResourceAnalysis() {
 <option value="OP">OP Consultation</option>
 <option value="PHARMACY">Pharmacy</option>
 <option value="DIAGNOSTICS">Diagnostics</option>
+<option value="EMERGENCY">Emergency</option>
                           </select>
                         </td>
                         <td>

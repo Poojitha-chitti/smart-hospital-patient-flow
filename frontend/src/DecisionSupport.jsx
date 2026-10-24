@@ -13,6 +13,9 @@ function DecisionSupport() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [historicalBottlenecks, setHistoricalBottlenecks] =
+  useState([]);
+const [historicalEabda, setHistoricalEabda] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +59,30 @@ function DecisionSupport() {
             ? bottleneckData
             : []
         );
+const historicalResponse = await fetch(
+  `${API_URL}/api/research/bottleneck-analysis`
+);
 
+if (historicalResponse.ok) {
+  const historicalData = await historicalResponse.json();
+
+  if (!cancelled) {
+    setHistoricalBottlenecks(
+      Array.isArray(historicalData) ? historicalData : []
+    );
+  }
+  const eabdaResponse = await fetch(
+  `${API_URL}/api/research/eabda?stage=${encodeURIComponent(selectedStage)}`
+);
+
+if (eabdaResponse.ok) {
+  const eabdaData = await eabdaResponse.json();
+
+  if (!cancelled) {
+    setHistoricalEabda(eabdaData);
+  }
+}
+}
         setMlInput(inputData);
 
         // Request a prediction using the selected
@@ -577,6 +603,86 @@ function DecisionSupport() {
           </p>
         </div>
       </section>
+      {/* Historical Bottleneck Analysis */}
+<section className="decision-card">
+  <h2>Historical Bottleneck Analysis</h2>
+  <p>
+    Analysis based on historical hospital workflow records.
+  </p>
+
+  {historicalBottlenecks.length > 0 ? (
+    <div className="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Stage</th>
+            <th>Total Cases</th>
+            <th>Average Wait (min)</th>
+            <th>Average Service (min)</th>
+            <th>High-Wait Cases</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {historicalBottlenecks.map((item) => (
+            <tr key={item.stage}>
+              <td>{item.stage}</td>
+              <td>{item.total_cases}</td>
+              <td>
+                {Number(item.average_waiting_minutes).toFixed(2)}
+              </td>
+              <td>
+                {Number(item.average_service_minutes).toFixed(2)}
+              </td>
+              <td>{item.high_wait_cases}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ) : (
+    <p>No historical bottleneck data available.</p>
+  )}
+</section>
+
+{/* Historical EABDA Diagnosis */}
+<section className="decision-card">
+  <h2>Historical EABDA Diagnosis</h2>
+
+  {historicalEabda ? (
+    <>
+      <p>
+        <strong>Stage:</strong> {historicalEabda.stage}
+      </p>
+      <p>
+        <strong>Diagnosis:</strong> {historicalEabda.state}
+      </p>
+      <p>
+        <strong>Historical Baseline:</strong>{" "}
+        {historicalEabda.baselineAverageMinutes} minutes
+      </p>
+      <p>
+        <strong>Latest Average Wait:</strong>{" "}
+        {historicalEabda.latestAverageMinutes} minutes
+      </p>
+      <p>
+        <strong>Pressure Ratio:</strong>{" "}
+        {historicalEabda.pressureRatio < 0
+          ? "Unavailable"
+          : historicalEabda.pressureRatio}
+      </p>
+      <p>
+        <strong>Days Analyzed:</strong>{" "}
+        {historicalEabda.daysAnalyzed}
+      </p>
+      <p>
+        <strong>Evidence:</strong> {historicalEabda.evidence}
+      </p>
+    </>
+  ) : (
+    <p>No historical EABDA diagnosis available.</p>
+  )}
+</section>
     </div>
   );
 }

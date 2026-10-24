@@ -2,9 +2,8 @@ import csv
 import math
 from pathlib import Path
 
-folder = Path(
-    r"C:\Users\Dell\Downloads\smart-hospital-eabda-v1\smart-hospital-backup\dataset_generator_new"
-)
+folder = Path(__file__).resolve().parent
+
 
 input_file = folder / "des_workflow_events_v3.csv"
 output_file = folder / "des_workflow_events_v3_clean.csv"
